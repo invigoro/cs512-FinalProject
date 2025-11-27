@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <title>UNM CS 412/512 HW2</title>
+  <style>
+    body {
+      background: #111;
+      color: #ccc;
+      font-family: monospace;
+    }
+
+    textarea {
+      background: #222;
+      color: #0f0;
+      font: 14px monospace;
+      width: 400px;
+      height: 250px;
+    }
+
+    canvas {
+      border: 1px solid #444;
+    }
+  </style>
+</head>
+
+<body>
+  <div style="display: flex; justify-content: center; gap: 10px; align-items: flex-start;">
+    <div style="display: flex; justify-content: center; flex-direction: column; gap: 10px;">
+    </div>
+    <div>
+      <canvas id="glcanvas" width="800" height="800"></canvas>
+    </div>
+  </div>
+
+  <!-- Vertex shader -->
+  <script id="vertex-shader" type="x-shader/x-vertex">#version 300 es
+in vec3 aPosition;
+in vec3 aColor;
+
+uniform float uTime; //time in sec
+uniform mat4 uModelViewMatrix;
+uniform mat4 uProjectionMatrix;
+uniform mat4 uModelTransformationMatrix;
+
+out vec3 vColor;
+
+void main() {
+  gl_Position = uProjectionMatrix * uModelViewMatrix * uModelTransformationMatrix * vec4(aPosition,1.0);
+  vColor = aColor;
+}
+</script>
+  <!-- Fragment Shader -->
+  <script id="fragment-shader" type="x-shader/x-fragment">#version 300 es
+precision mediump float;
+in vec3 vColor;
+
+out vec4 fragColor;
+
+void main() {
+  fragColor = vec4(vColor,1.0);
+}
+</script>
+
+  <script src="primitives.js"></script>
+  <script src="transformation.js"></script>
+
+  <script>
+    function createShader(gl, type, source) {
+      let shader = gl.createShader(type);
+      gl.shaderSource(shader, source);
+      gl.compileShader(shader);
+      if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+        throw new Error(gl.getShaderInfoLog(shader));
+      }
+      return shader;
+    }
+
+    function createProgram(gl, vsSource, fsSource) {
+      let vs = createShader(gl, gl.VERTEX_SHADER, vsSource);
+      let fs = createShader(gl, gl.FRAGMENT_SHADER, fsSource);
+      let prog = gl.createProgram();
+      gl.attachShader(prog, vs);
+      gl.attachShader(prog, fs);
+      gl.linkProgram(prog);
+      if (!gl.getProgramParameter(prog, gl.LINK_STATUS)) {
+        throw new Error(gl.getProgramInfoLog(prog));
+      }
+      return prog;
+    }
+
+    // WebGL setup
+    const canvas = document.getElementById("glcanvas");
+    const gl = canvas.getContext("webgl2");
+    if (!gl) alert("WebGL2 not supported");
+
+
+
+    let program, posLoc, colorLoc, uMVM, uPM, uMTM;
+    let vbo, nbo, ibo;
+
+    // Buffers
+    function initBuffers() {
+      vbo = gl.createBuffer();
+      gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
+      gl.bufferData(gl.ARRAY_BUFFER, positions, gl.STATIC_DRAW);
+
+      nbo = gl.createBuffer();
+      gl.bindBuffer(gl.ARRAY_BUFFER, nbo);
+      gl.bufferData(gl.ARRAY_BUFFER, colors, gl.STATIC_DRAW);
+
+      ibo = gl.createBuffer();
+      gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ibo); 
+      gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indices, gl.STATIC_DRAW);
+    }
+    initBuffers();
+
+    function initShaderProgram() {
+      try {
+        program = createProgram(gl, document.getElementById("vertex-shader").textContent, document.getElementById("fragment-shader").textContent);
+        gl.useProgram(program);
+        posLoc = gl.getAttribLocation(program, "aPosition");
+        colorLoc = gl.getAttribLocation(program, "aColor");
+        timeLoc = gl.getUniformLocation(program, "uTime");
+        uMVM = gl.getUniformLocation(program, "uModelViewMatrix");
+        uPM = gl.getUniformLocation(program, "uProjectionMatrix");
+        uMTM = gl.getUniformLocation(program, "uModelTransformationMatrix");
+      } catch (e) { console.error(e); }
+    }
+    initShaderProgram();
+
+
+    // Kart physics
+    let kartX = 0, kartZ = 0, kartAngle = 0, kartSpeed = 0;
+    const maxSpeed = 0.15;
+    const acceleration = 0.005;
+    const friction = 0.97;
+    const turnSpeed = 0.03;
+
+    // Keyboard
+    let keys = {};
+    document.addEventListener('keydown', e => {
+      keys[e.key] = true;
+      if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key)) e.preventDefault();
+    });
+    document.addEventListener('keyup', e => keys[e.key] = false);
+
+    let fov = Math.PI / 4, aspect = canvas.width / canvas.height, zNear = 0.1, zFar = 100;
+    let f = 1 / Math.tan(fov / 2);
+    let proj = new Float32Array([
+      f / aspect, 0, 0, 0, 0, f, 0, 0, 0, 0, (zFar + zNear) / (zNear - zFar), -1, 0, 0, (2 * zFar * zNear) / (zNear - zFar), 0
+    ]);
+
+    let startTime = Date.now();
+
+    function render() {
+      // Update kart physics
+      if (keys['ArrowUp']) kartSpeed -= acceleration;
+      if (keys['ArrowDown']) kartSpeed += acceleration;
+      kartSpeed = Math.max(-maxSpeed, Math.min(maxSpeed, kartSpeed));
+      kartSpeed *= friction;
+
+      if (Math.abs(kartSpeed) > 0.01) {
+        if (keys['ArrowLeft']) kartAngle -= turnSpeed * (kartSpeed / maxSpeed);
+        if (keys['ArrowRight']) kartAngle += turnSpeed * (kartSpeed / maxSpeed);
+      }
+
+      kartX += Math.sin(kartAngle) * kartSpeed;
+      kartZ += Math.cos(kartAngle) * kartSpeed;
+
+      gl.enable(gl.DEPTH_TEST);
+      gl.clearColor(0, 0, 0, 1);
+      gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+      // Simple camera setup
+      let modelViewMatrix = mat4Identity();
+      modelViewMatrix = mat4Translate(modelViewMatrix, [0, -2, -8]);
+
+      let modelTransformationMatrix = mat4Identity();
+      modelTransformationMatrix = mat4Translate(modelTransformationMatrix, [kartX, 0, kartZ]);
+      modelTransformationMatrix = mat4RotateY(modelTransformationMatrix, kartAngle);
+
+      let deltaTime = Date.now() - startTime;
+      
+      gl.uniform1f(timeLoc, deltaTime/1000.0);
+      gl.uniformMatrix4fv(uPM, false, proj);
+      gl.uniformMatrix4fv(uMVM, false, modelViewMatrix);
+      gl.uniformMatrix4fv(uMTM, false, modelTransformationMatrix);
+
+      gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
+      gl.enableVertexAttribArray(posLoc);
+      gl.vertexAttribPointer(posLoc, 3, gl.FLOAT, false, 0, 0);
+
+      gl.bindBuffer(gl.ARRAY_BUFFER, nbo);
+      gl.enableVertexAttribArray(colorLoc);
+      gl.vertexAttribPointer(colorLoc, 3, gl.FLOAT, false, 0, 0);
+      gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ibo);
+
+      gl.drawElements(gl.TRIANGLES, indices.length, gl.UNSIGNED_SHORT, 0);
+    }
+
+    window.onload = function () {
+      setInterval(render, 30);
+    }
+
+  </script>
+</body>
+
+</html>
