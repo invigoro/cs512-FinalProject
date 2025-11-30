@@ -67,6 +67,7 @@ void main() {
 
   <script src="primitives.js"></script>
   <script src="transformation.js"></script>
+  <script src="sceneObjects.js"></script>
 
   <script>
     function createShader(gl, type, source) {
@@ -101,20 +102,20 @@ void main() {
 
     let program, posLoc, colorLoc, uMVM, uPM, uMTM;
     let vbo, nbo, ibo;
-
+    
     // Buffers
     function initBuffers() {
       vbo = gl.createBuffer();
       gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
-      gl.bufferData(gl.ARRAY_BUFFER, positions, gl.STATIC_DRAW);
+      gl.bufferData(gl.ARRAY_BUFFER, cube1.positions, gl.STATIC_DRAW);
 
       nbo = gl.createBuffer();
       gl.bindBuffer(gl.ARRAY_BUFFER, nbo);
-      gl.bufferData(gl.ARRAY_BUFFER, colors, gl.STATIC_DRAW);
+      gl.bufferData(gl.ARRAY_BUFFER, cube1.colors, gl.STATIC_DRAW);
 
       ibo = gl.createBuffer();
       gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ibo); 
-      gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, indices, gl.STATIC_DRAW);
+      gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, cube1.indices, gl.STATIC_DRAW);
     }
     initBuffers();
 
@@ -211,13 +212,13 @@ void main() {
     kartModel = mat4RotateY(kartModel, kartAngle);
 
     gl.uniformMatrix4fv(uMTM, false, kartModel);
-    gl.drawElements(gl.TRIANGLES, indices.length, gl.UNSIGNED_SHORT, 0);
+    gl.drawElements(gl.TRIANGLES, cube1.indices.length, gl.UNSIGNED_SHORT, 0);
 
     //reference cube to see that cam is working
     let refCube = mat4Identity();
     refCube = mat4Translate(refCube, [-1, 0, -10]); 
     gl.uniformMatrix4fv(uMTM, false, refCube);
-    gl.drawElements(gl.TRIANGLES, indices.length, gl.UNSIGNED_SHORT, 0);
+    gl.drawElements(gl.TRIANGLES, cube1.indices.length, gl.UNSIGNED_SHORT, 0);
 
 
     }
