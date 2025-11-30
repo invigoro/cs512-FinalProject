@@ -21,6 +21,8 @@
 
     canvas {
       border: 1px solid #444;
+    background: #757474;
+
     }
   </style>
 </head>
@@ -164,40 +166,60 @@ void main() {
       if (Math.abs(kartSpeed) > 0.01) {
         if (keys['ArrowLeft']) kartAngle -= turnSpeed * (kartSpeed / maxSpeed);
         if (keys['ArrowRight']) kartAngle += turnSpeed * (kartSpeed / maxSpeed);
-      }
+    }
 
-      kartX += Math.sin(kartAngle) * kartSpeed;
-      kartZ += Math.cos(kartAngle) * kartSpeed;
+    kartX += Math.sin(kartAngle) * kartSpeed;
+    kartZ += Math.cos(kartAngle) * kartSpeed;
 
-      gl.enable(gl.DEPTH_TEST);
-      gl.clearColor(0, 0, 0, 1);
-      gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+    gl.enable(gl.DEPTH_TEST);
+    //gl.clearColor(0, 0, 0, 1);
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
-      // Simple camera setup
-      let modelViewMatrix = mat4Identity();
-      modelViewMatrix = mat4Translate(modelViewMatrix, [0, -2, -8]);
+    let camZ = -kartZ - 13;
+    let camX = -kartX + 0;
+    let modelViewMatrix = mat4Identity();
 
-      let modelTransformationMatrix = mat4Identity();
-      modelTransformationMatrix = mat4Translate(modelTransformationMatrix, [kartX, 0, kartZ]);
-      modelTransformationMatrix = mat4RotateY(modelTransformationMatrix, kartAngle);
 
-      let deltaTime = Date.now() - startTime;
+    modelViewMatrix = mat4Translate(modelViewMatrix, [0, -3, -13]);
+
+
+    modelViewMatrix = mat4RotateY(modelViewMatrix, -kartAngle);
+
+    modelViewMatrix = mat4Translate(modelViewMatrix, [-kartX, 0, -kartZ]);
+
+
+
+
+
+    let deltaTime = Date.now() - startTime;
       
-      gl.uniform1f(timeLoc, deltaTime/1000.0);
-      gl.uniformMatrix4fv(uPM, false, proj);
-      gl.uniformMatrix4fv(uMVM, false, modelViewMatrix);
-      gl.uniformMatrix4fv(uMTM, false, modelTransformationMatrix);
+    gl.uniform1f(timeLoc, deltaTime/1000.0);
+    gl.uniformMatrix4fv(uPM, false, proj);
+    gl.uniformMatrix4fv(uMVM, false, modelViewMatrix);
 
-      gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
-      gl.enableVertexAttribArray(posLoc);
-      gl.vertexAttribPointer(posLoc, 3, gl.FLOAT, false, 0, 0);
+    gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
+    gl.enableVertexAttribArray(posLoc);
+    gl.vertexAttribPointer(posLoc, 3, gl.FLOAT, false, 0, 0);
 
-      gl.bindBuffer(gl.ARRAY_BUFFER, nbo);
-      gl.enableVertexAttribArray(colorLoc);
-      gl.vertexAttribPointer(colorLoc, 3, gl.FLOAT, false, 0, 0);
-      gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ibo);
+    gl.bindBuffer(gl.ARRAY_BUFFER, nbo);
+    gl.enableVertexAttribArray(colorLoc);
+    gl.vertexAttribPointer(colorLoc, 3, gl.FLOAT, false, 0, 0);
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ibo);
 
-      gl.drawElements(gl.TRIANGLES, indices.length, gl.UNSIGNED_SHORT, 0);
+    let kartModel = mat4Identity();
+    kartModel = mat4Translate(kartModel, [kartX, 0, kartZ]);
+    kartModel = mat4RotateY(kartModel, kartAngle);
+
+    gl.uniformMatrix4fv(uMTM, false, kartModel);
+    gl.drawElements(gl.TRIANGLES, indices.length, gl.UNSIGNED_SHORT, 0);
+
+    //reference cube to see that cam is working
+    let refCube = mat4Identity();
+    refCube = mat4Translate(refCube, [-1, 0, -10]); 
+    gl.uniformMatrix4fv(uMTM, false, refCube);
+    gl.drawElements(gl.TRIANGLES, indices.length, gl.UNSIGNED_SHORT, 0);
+
+
     }
 
     window.onload = function () {
