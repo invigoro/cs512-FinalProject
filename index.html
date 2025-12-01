@@ -107,15 +107,15 @@ void main() {
     function initBuffers() {
       vbo = gl.createBuffer();
       gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
-      gl.bufferData(gl.ARRAY_BUFFER, cube1.positions, gl.STATIC_DRAW);
+      gl.bufferData(gl.ARRAY_BUFFER, kartBase.positions, gl.STATIC_DRAW);
 
       nbo = gl.createBuffer();
       gl.bindBuffer(gl.ARRAY_BUFFER, nbo);
-      gl.bufferData(gl.ARRAY_BUFFER, cube1.colors, gl.STATIC_DRAW);
+      gl.bufferData(gl.ARRAY_BUFFER, kartBase.colors, gl.STATIC_DRAW);
 
       ibo = gl.createBuffer();
       gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ibo); 
-      gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, cube1.indices, gl.STATIC_DRAW);
+      gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, kartBase.indices, gl.STATIC_DRAW);
     }
     initBuffers();
 
@@ -156,6 +156,23 @@ void main() {
     ]);
 
     let startTime = Date.now();
+
+
+    function drawPrimitive(prim, transform = null) {
+      transform = transform ?? mat4Identity();
+      transform = mat4Translate(transform, [prim.posX, prim.posY, prim.posZ]);
+      gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
+      gl.bufferData(gl.ARRAY_BUFFER, prim.positions, gl.STATIC_DRAW);
+
+      gl.bindBuffer(gl.ARRAY_BUFFER, nbo);
+      gl.bufferData(gl.ARRAY_BUFFER, prim.colors, gl.STATIC_DRAW);
+
+      gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ibo);
+      gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, prim.indices, gl.STATIC_DRAW);
+
+      gl.uniformMatrix4fv(uMTM, false, transform);
+      gl.drawElements(gl.TRIANGLES, prim.indices.length, gl.UNSIGNED_SHORT, 0);
+    }
 
     function render() {
       // Update kart physics
@@ -211,15 +228,20 @@ void main() {
     kartModel = mat4Translate(kartModel, [kartX, 0, kartZ]);
     kartModel = mat4RotateY(kartModel, kartAngle);
 
-    gl.uniformMatrix4fv(uMTM, false, kartModel);
-    gl.drawElements(gl.TRIANGLES, cube1.indices.length, gl.UNSIGNED_SHORT, 0);
+    drawPrimitive(kartBase, kartModel);
+    // gl.uniformMatrix4fv(uMTM, false, kartModel);
+    // gl.drawElements(gl.TRIANGLES, kartBase.indices.length, gl.UNSIGNED_SHORT, 0);
 
     //reference cube to see that cam is working
-    let refCube = mat4Identity();
-    refCube = mat4Translate(refCube, [-1, 0, -10]); 
-    gl.uniformMatrix4fv(uMTM, false, refCube);
-    gl.drawElements(gl.TRIANGLES, cube1.indices.length, gl.UNSIGNED_SHORT, 0);
+    // let refCube = mat4Identity();
+    // refCube = mat4Translate(refCube, [-1, 0, -10]); 
+    // gl.uniformMatrix4fv(uMTM, false, refCube);
+    // gl.drawElements(gl.TRIANGLES, kartBase.indices.length, gl.UNSIGNED_SHORT, 0);
 
+    for(let i = 0; i < globalObjects.length; i++) {
+      let obj = globalObjects[i];
+      drawPrimitive(obj);
+    }
 
     }
 

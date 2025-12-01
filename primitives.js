@@ -3,9 +3,18 @@ class Primitive {
         this.positions = new Float32Array(positions);
         this.indices   = new Uint16Array(indices);
         this.colors    = new Float32Array(colors);
+        this.posX = 0;
+        this.posY = 0;
+        this.posZ = 0;
         this.scaX = 1;
         this.scaY = 1;
         this.scaZ = 1;
+    }
+
+    setPos([x, y, z]) {
+        this.posX = x;
+        this.posY = y;
+        this.posZ = z;
     }
 }
 
