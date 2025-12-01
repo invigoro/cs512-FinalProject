@@ -102,7 +102,7 @@ void main() {
 
     let program, posLoc, colorLoc, uMVM, uPM, uMTM;
     let vbo, nbo, ibo;
-    
+
     // Buffers
     function initBuffers() {
       vbo = gl.createBuffer();
@@ -136,10 +136,13 @@ void main() {
 
     // Kart physics
     let kartX = 0, kartZ = 0, kartAngle = 0, kartSpeed = 0;
-    const maxSpeed = 0.15;
-    const acceleration = 0.005;
+    const maxSpeed = 1;
+    const acceleration = 0.03;
     const friction = 0.97;
-    const turnSpeed = 0.03;
+    const turnSpeed = 0.05;
+    let isTurning = 0;
+    const axleRotY = axleFR.rotY;
+    const axleTurnCoeff = 3.0;
 
     // Keyboard
     let keys = {};
@@ -195,6 +198,23 @@ void main() {
         if (keys['ArrowRight']) kartAngle += turnSpeed * (kartSpeed / maxSpeed);
     }
 
+    if(keys['ArrowLeft'] && !keys['ArrowRight']) {
+      isTurning = -1;
+      axleFR.rotY = axleRotY + (axleTurnCoeff * turnSpeed);
+      axleFL.rotY = axleRotY + (axleTurnCoeff * turnSpeed);
+    }
+    else if(keys['ArrowRight'] && !keys['ArrowLeft']) {
+      isTurning = 1;
+      axleFR.rotY = axleRotY - (axleTurnCoeff * turnSpeed);
+      axleFL.rotY = axleRotY - (axleTurnCoeff * turnSpeed);
+    }
+    else {
+      isTurning = 0;
+      axleFR.rotY = axleRotY;
+      axleFL.rotY = axleRotY;
+    }
+    
+
     kartX += Math.sin(kartAngle) * kartSpeed;
     kartZ += Math.cos(kartAngle) * kartSpeed;
 
@@ -236,6 +256,8 @@ void main() {
     let kartModel = mat4Identity();
     kartModel = mat4Translate(kartModel, [kartX, 0, kartZ]);
     kartModel = mat4RotateY(kartModel, kartAngle);
+
+    
 
     drawPrimitive(kartBase, kartModel);
     // gl.uniformMatrix4fv(uMTM, false, kartModel);

@@ -9,11 +9,11 @@ chassis.scaX = .75;
 chassis.scaZ = 1.5;
 kartBase.appendChild(chassis);
 
+//Rear axle
 let axleRear = createCylinder(.1, 2, 8, [0.3, 0.3, 0.3]);
 axleRear.rotX = Math.PI / 2;
 axleRear.rotY = Math.PI / 2;
-axleRear.posZ = 1;
-
+axleRear.posZ = 1.3;
 let wheelRL = createCylinder(.5,.25, 32, [0.15, 0.15, 0.15]);
 wheelRL.posY = -1;
 axleRear.appendChild(wheelRL);
@@ -22,6 +22,28 @@ wheelRR.posY = 1;
 axleRear.appendChild(wheelRR);
 
 kartBase.appendChild(axleRear);
+
+//Front axle
+let axleFR = createCylinder(.1, .8, 8, [0.3, 0.3, 0.3]);
+axleFR.rotX = Math.PI / 2;
+axleFR.rotY = Math.PI / 2;
+axleFR.posZ = -1.1;
+axleFR.posX = .5;
+let wheelFR = createCylinder(.5,.25, 32, [0.15, 0.15, 0.15]);
+wheelFR.posY = .5;
+axleFR.appendChild(wheelFR);
+
+let axleFL = createCylinder(.1, .8, 8, [0.3, 0.3, 0.3]);
+axleFL.rotX = Math.PI / 2;
+axleFL.rotY = Math.PI / 2;
+axleFL.posZ = -1.1;
+axleFL.posX = -.5;
+let wheelFL = createCylinder(.5,.25, 32, [0.15, 0.15, 0.15]);
+wheelFL.posY = -.5;
+axleFL.appendChild(wheelFL);
+
+kartBase.appendChild(axleFR);
+kartBase.appendChild(axleFL);
 
 
 /* OBSTACLES */
