@@ -160,9 +160,11 @@ void main() {
 
     function drawPrimitive(prim, transform = null) {
       let localTransform = mat4Identity(); //P * T * R * S
-      localTransform = mat4Scale(localTransform, [prim.scaX, prim.scaY, prim.scaZ]);
-      //todo: rotation
+
+      //TODO: FIX THIS; ROTATION IS CAUSING SHEARING
       localTransform = mat4Translate(localTransform, [prim.posX, prim.posY, prim.posZ]);
+      localTransform = multiplyMat4(localTransform, prim.getRotationMatrix());
+      localTransform = mat4Scale(localTransform, [prim.scaX, prim.scaY, prim.scaZ]);
       transform = transform ?? mat4Identity();
       transform = multiplyMat4(transform, localTransform);
 

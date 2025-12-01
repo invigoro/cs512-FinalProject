@@ -1,14 +1,21 @@
 class Primitive {
     constructor(positions, indices, colors) {
         this.positions = new Float32Array(positions);
-        this.indices   = new Uint16Array(indices);
-        this.colors    = new Float32Array(colors);
+        this.indices = new Uint16Array(indices);
+        this.colors = new Float32Array(colors);
+
         this.posX = 0;
         this.posY = 0;
         this.posZ = 0;
+
         this.scaX = 1;
         this.scaY = 1;
         this.scaZ = 1;
+
+        this.rotX = 0;
+        this.rotY = 0;
+        this.rotZ = 0;
+
         this.children = [];
     }
 
@@ -24,6 +31,41 @@ class Primitive {
         this.scaZ = z;
     }
 
+    setRot([x, y, z]) {
+        this.rotX = x;
+        this.rotY = y;
+        this.rotZ = z;
+    }
+
+    getRotationMatrix() {
+        const cx = Math.cos(this.rotY), sx = Math.sin(this.rotY);
+        const cy = Math.cos(this.rotX), sy = Math.sin(this.rotX);
+        const cz = Math.cos(this.rotZ), sz = Math.sin(this.rotZ);
+
+        const rotXMat = [
+            1, 0, 0, 0,
+            0, cy, sy, 0,
+            0, -sy, cy, 0,
+            0, 0, 0, 1
+        ];
+
+        const rotYMat = [
+            cx, 0, -sx, 0,
+            0, 1, 0, 0,
+            sx, 0, cx, 0,
+            0, 0, 0, 1
+        ];
+
+        const rotZMat = [
+            cz, sz, 0, 0,
+            -sz, cz, 0, 0,
+            0, 0, 1, 0,
+            0, 0, 0, 1
+        ];
+
+        return multiplyMat4(multiplyMat4(rotYMat, rotXMat), rotZMat);
+    }
+
     appendChild(child) {
         this.children.push(child);
     }
@@ -37,8 +79,8 @@ class Primitive {
 function defaultColor(color) {
     if (!color) {
         return [
-            Math.random(), 
-            Math.random(), 
+            Math.random(),
+            Math.random(),
             Math.random()
         ];
     }
@@ -64,17 +106,17 @@ function createCube(size = 1, color = null) {
     const s = size / 2;
 
     const positions = [
-        -s,-s,-s,   s,-s,-s,   s, s,-s,  -s, s,-s,
-        -s,-s, s,   s,-s, s,   s, s, s,  -s, s, s
+        -s, -s, -s, s, -s, -s, s, s, -s, -s, s, -s,
+        -s, -s, s, s, -s, s, s, s, s, -s, s, s
     ];
 
     const indices = [
-        4,5,6, 4,6,7,
-        1,0,3, 1,3,2,
-        3,7,6, 3,6,2,
-        0,1,5, 0,5,4,
-        1,2,6, 1,6,5,
-        0,4,7, 0,7,3
+        4, 5, 6, 4, 6, 7,
+        1, 0, 3, 1, 3, 2,
+        3, 7, 6, 3, 6, 2,
+        0, 1, 5, 0, 5, 4,
+        1, 2, 6, 1, 6, 5,
+        0, 4, 7, 0, 7, 3
     ];
 
     const colors = makeColors(8, color);
@@ -143,14 +185,14 @@ function createCylinder(radius = 1, height = 2, segments = 32, color = null) {
         const z = radius * Math.sin(a);
 
         positions.push(x, -halfH, z);
-        positions.push(x,  halfH, z);
+        positions.push(x, halfH, z);
     }
 
     // side indices
     for (let i = 0; i < segments; i++) {
         const base = i * 2;
-        indices.push(base, base+1, base+2);
-        indices.push(base+1, base+3, base+2);
+        indices.push(base, base + 1, base + 2);
+        indices.push(base + 1, base + 3, base + 2);
     }
 
     // top center
@@ -164,14 +206,14 @@ function createCylinder(radius = 1, height = 2, segments = 32, color = null) {
     // top cap
     for (let i = 0; i < segments; i++) {
         const a = i * 2 + 1;
-        const b = ((i+1) % segments) * 2 + 1;
+        const b = ((i + 1) % segments) * 2 + 1;
         indices.push(topCenter, b, a);
     }
 
     // bottom cap
     for (let i = 0; i < segments; i++) {
         const a = i * 2;
-        const b = ((i+1) % segments) * 2;
+        const b = ((i + 1) % segments) * 2;
         indices.push(bottomCenter, a, b);
     }
 
@@ -206,8 +248,8 @@ function createCone(radius = 1, height = 2, segments = 32, color = null) {
     }
 
     // sides
-    for (let i=1; i<=segments; i++) {
-        indices.push(apex, i+1, i);
+    for (let i = 1; i <= segments; i++) {
+        indices.push(apex, i + 1, i);
     }
 
     // bottom center
@@ -215,8 +257,8 @@ function createCone(radius = 1, height = 2, segments = 32, color = null) {
     positions.push(0, -halfH, 0);
 
     // bottom cap
-    for (let i=1; i<=segments; i++) {
-        indices.push(bottomCenter, i, i+1);
+    for (let i = 1; i <= segments; i++) {
+        indices.push(bottomCenter, i, i + 1);
     }
 
     const colors = makeColors(positions.length / 3, color);
@@ -260,8 +302,8 @@ function createTorus(
             const a = j * row + i;
             const b = a + row;
 
-            indices.push(a, b, a+1);
-            indices.push(a+1, b, b+1);
+            indices.push(a, b, a + 1);
+            indices.push(a + 1, b, b + 1);
         }
     }
 
@@ -279,16 +321,16 @@ function createTetrahedron(size = 1, color = null) {
 
     const positions = [
         s, s, s,
-       -s,-s, s,
-       -s, s,-s,
-        s,-s,-s,
+        -s, -s, s,
+        -s, s, -s,
+        s, -s, -s,
     ];
 
     const indices = [
-        0,1,2,
-        0,3,1,
-        0,2,3,
-        1,3,2
+        0, 1, 2,
+        0, 3, 1,
+        0, 2, 3,
+        1, 3, 2
     ];
 
     const colors = makeColors(4, color);
