@@ -57,3 +57,17 @@ cube2.setPos([0, 1, 0]);
 cube2.setSca([1, 5, 1]);
 cube2.setRot([1, 0, 0]);
 cube1.appendChild(cube2);
+
+//random obstacles
+const obstacleCount = 20;
+const xMin = -5; const xMax = -100;
+const zMin = -5; const zMax = -100;
+
+for(let i = 0; i < obstacleCount; i++){
+    let obs = createCube(4);
+    posX = xMin + (Math.random() * (xMax - xMin));
+    posZ = zMin + (Math.random() * (zMax - zMin));
+    obs.setPos([posX, 1, posZ])
+    obs.setRot([0, Math.random() * Math.PI, 0])
+    globalObjects.push(obs);
+}
