@@ -9,12 +9,23 @@ class Primitive {
         this.scaX = 1;
         this.scaY = 1;
         this.scaZ = 1;
+        this.children = [];
     }
 
     setPos([x, y, z]) {
         this.posX = x;
         this.posY = y;
         this.posZ = z;
+    }
+
+    setSca([x, y, z]) {
+        this.scaX = x;
+        this.scaY = y;
+        this.scaZ = z;
+    }
+
+    appendChild(child) {
+        this.children.push(child);
     }
 }
 

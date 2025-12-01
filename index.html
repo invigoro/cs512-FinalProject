@@ -160,6 +160,7 @@ void main() {
 
     function drawPrimitive(prim, transform = null) {
       transform = transform ?? mat4Identity();
+      transform = mat4Scale(transform, [prim.scaX, prim.scaY, prim.scaZ]);
       transform = mat4Translate(transform, [prim.posX, prim.posY, prim.posZ]);
       gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
       gl.bufferData(gl.ARRAY_BUFFER, prim.positions, gl.STATIC_DRAW);
@@ -172,6 +173,10 @@ void main() {
 
       gl.uniformMatrix4fv(uMTM, false, transform);
       gl.drawElements(gl.TRIANGLES, prim.indices.length, gl.UNSIGNED_SHORT, 0);
+
+      prim.children.forEach(child => {
+        drawPrimitive(child,transform);
+      });
     }
 
     function render() {
