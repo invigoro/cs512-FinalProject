@@ -159,9 +159,13 @@ void main() {
 
 
     function drawPrimitive(prim, transform = null) {
+      let localTransform = mat4Identity(); //P * T * R * S
+      localTransform = mat4Scale(localTransform, [prim.scaX, prim.scaY, prim.scaZ]);
+      //todo: rotation
+      localTransform = mat4Translate(localTransform, [prim.posX, prim.posY, prim.posZ]);
       transform = transform ?? mat4Identity();
-      transform = mat4Scale(transform, [prim.scaX, prim.scaY, prim.scaZ]);
-      transform = mat4Translate(transform, [prim.posX, prim.posY, prim.posZ]);
+      transform = multiplyMat4(transform, localTransform);
+
       gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
       gl.bufferData(gl.ARRAY_BUFFER, prim.positions, gl.STATIC_DRAW);
 
