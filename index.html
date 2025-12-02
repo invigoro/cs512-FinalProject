@@ -38,9 +38,11 @@
 
   <!-- Vertex shader -->
 <script id="vertex-shader" type="x-shader/x-vertex">#version 300 es
+precision mediump float;
+
 in vec3 aPosition;
-in vec3 aColor;
 in vec3 aNormal;
+in vec3 aColor;
 
 uniform mat4 uModelViewMatrix;
 uniform mat4 uProjectionMatrix;
@@ -49,19 +51,16 @@ uniform mat3 uNormalMatrix;
 
 out vec3 vColor;
 out vec3 vNormal;
-out vec3 vFragPos;
+out vec3 vPosition;
 
 void main() {
-    mat4 model = uModelTransformationMatrix;
-
-    vec4 worldPos = model * vec4(aPosition, 1.0);
-    vFragPos = worldPos.xyz;
-
-    vNormal = normalize(uNormalMatrix * aNormal);
-
-    vColor = aColor;
+    vec4 worldPos = uModelTransformationMatrix * vec4(aPosition, 1.0);
 
     gl_Position = uProjectionMatrix * uModelViewMatrix * worldPos;
+
+    vColor = aColor;
+    vNormal = normalize(uNormalMatrix * aNormal);
+    vPosition = worldPos.xyz;
 }
 </script>
 <!-- Fragment Shader -->
@@ -70,23 +69,38 @@ precision mediump float;
 
 in vec3 vColor;
 in vec3 vNormal;
-in vec3 vFragPos;
+in vec3 vPosition;
 
 out vec4 fragColor;
 
+// Light data
 uniform vec3 uLightPos;
-uniform vec3 uViewPos;
+uniform vec3 uLightColor;
+
+// Material data
+uniform float uKAmbient;
+uniform float uKDiffuse;
+uniform float uKSpecular;
+uniform float uShininess;
 
 void main() {
     vec3 N = normalize(vNormal);
-    vec3 L = normalize(uLightPos - vFragPos);
+    vec3 L = normalize(uLightPos - vPosition);
+    vec3 V = normalize(-vPosition);
+    vec3 R = reflect(-L, N);
 
     float diff = max(dot(N, L), 0.0);
+    float spec = 0.0;
 
-    vec3 ambient = 0.25 * vColor;
-    vec3 diffuse = diff * vColor;
+    if (diff > 0.0) {
+        spec = pow(max(dot(R, V), 0.0), uShininess);
+    }
 
-    fragColor = vec4(ambient + diffuse, 1.0);
+    vec3 ambient  = uKAmbient  * vColor;
+    vec3 diffuse  = uKDiffuse  * diff * vColor;
+    vec3 specular = uKSpecular * spec * uLightColor;
+
+    fragColor = vec4(ambient + diffuse + specular, 1.0);
 }
 </script>
 
@@ -128,6 +142,7 @@ void main() {
 let program, posLoc, colorLoc, normalLoc;
 let uMVM, uPM, uMTM, uNormalMatrix;
 let uLightPos, uViewPos;
+let uKAmbient, uKDiffuse, uKSpecular, uKShininess;
 
 let vbo, cbo, nbo, ibo;
 
@@ -156,6 +171,11 @@ function initBuffers() {
 uNormalMatrix = gl.getUniformLocation(program, "uNormalMatrix");
 uLightPos = gl.getUniformLocation(program, "uLightPos");
 uViewPos = gl.getUniformLocation(program, "uViewPos");
+
+uKAmbient      = gl.getUniformLocation(program, "uKAmbient");
+uKDiffuse      = gl.getUniformLocation(program, "uKDiffuse");
+uKSpecular     = gl.getUniformLocation(program, "uKSpecular");
+uShininess     = gl.getUniformLocation(program, "uShininess");
       } catch (e) { console.error(e); }
     }
     initShaderProgram();
@@ -208,27 +228,44 @@ uViewPos = gl.getUniformLocation(program, "uViewPos");
   gl.enableVertexAttribArray(colorLoc);
   gl.vertexAttribPointer(colorLoc, 3, gl.FLOAT, false, 0, 0);
 
-  // Upload normals
-  gl.bindBuffer(gl.ARRAY_BUFFER, nbo);
-  gl.bufferData(gl.ARRAY_BUFFER, prim.normals, gl.STATIC_DRAW);
-  gl.enableVertexAttribArray(normalLoc);
-  gl.vertexAttribPointer(normalLoc, 3, gl.FLOAT, false, 0, 0);
+  // ---- NORMALS ----
+    let normalMatrix = mat3FromMat4(transform);
+    normalMatrix = mat3InvertTranspose(normalMatrix);
+    gl.uniformMatrix3fv(uNormalMatrix, false, normalMatrix);
 
-  // Upload indices
-  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ibo);
-  gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, prim.indices, gl.STATIC_DRAW);
+    // ---- MATERIAL ----
+    gl.uniform1f(uKAmbient,  prim.kAmbient);
+    gl.uniform1f(uKDiffuse,  prim.kDiffuse);
+    gl.uniform1f(uKSpecular, prim.kSpecular);
+    gl.uniform1f(uShininess, prim.shininess);
 
-  // Normal matrix (Mat3)
-  let normalMatrix = mat3FromMat4(transform);
-  normalMatrix = mat3InvertTranspose(normalMatrix);
+    // ---- Buffers ----
+    gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
+    gl.bufferData(gl.ARRAY_BUFFER, prim.positions, gl.STATIC_DRAW);
+    gl.vertexAttribPointer(posLoc, 3, gl.FLOAT, false, 0, 0);
+    gl.enableVertexAttribArray(posLoc);
 
-  gl.uniformMatrix4fv(uMTM, false, transform);
-  gl.uniformMatrix3fv(uNormalMatrix, false, normalMatrix);
+    // Normals:
+    gl.bindBuffer(gl.ARRAY_BUFFER, nbo);
+    gl.bufferData(gl.ARRAY_BUFFER, prim.normals, gl.STATIC_DRAW);
+    gl.vertexAttribPointer(normalLoc, 3, gl.FLOAT, false, 0, 0);
+    gl.enableVertexAttribArray(normalLoc);
 
-  gl.drawElements(gl.TRIANGLES, prim.indices.length, gl.UNSIGNED_SHORT, 0);
+    // Colors:
+    gl.bindBuffer(gl.ARRAY_BUFFER, cbo);
+    gl.bufferData(gl.ARRAY_BUFFER, prim.colors, gl.STATIC_DRAW);
+    gl.vertexAttribPointer(colorLoc, 3, gl.FLOAT, false, 0, 0);
+    gl.enableVertexAttribArray(colorLoc);
 
-  // Children
-  prim.children.forEach(child => drawPrimitive(child, transform));
+    // Indices:
+    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ibo);
+    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, prim.indices, gl.STATIC_DRAW);
+
+    gl.uniformMatrix4fv(uMTM, false, transform);
+
+    gl.drawElements(gl.TRIANGLES, prim.indices.length, gl.UNSIGNED_SHORT, 0);
+
+    prim.children.forEach(child => drawPrimitive(child, transform));
     }
 
     function render() {

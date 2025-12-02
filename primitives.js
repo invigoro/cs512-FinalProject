@@ -18,6 +18,12 @@ class Primitive {
         this.rotZ = 0;
 
         this.children = [];
+
+        this.kAmbient  = 0.5;
+        this.kDiffuse  = 0.7;
+        this.kSpecular = 0.5;
+        this.shininess = 32;
+
     }
 
     setPos([x, y, z]) {
@@ -69,6 +75,12 @@ class Primitive {
 
     appendChild(child) {
         this.children.push(child);
+    }
+    setMaterial({ ambient, diffuse, specular, shininess }) {
+        if (ambient   !== undefined) this.kAmbient  = ambient;
+        if (diffuse   !== undefined) this.kDiffuse  = diffuse;
+        if (specular  !== undefined) this.kSpecular = specular;
+        if (shininess !== undefined) this.shininess = shininess;
     }
 }
 
