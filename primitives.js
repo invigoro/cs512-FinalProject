@@ -1,9 +1,14 @@
 class Primitive {
-    constructor(positions, indices, colors, normals) {
+    constructor(positions, indices, colors, normals, texCoords = null, textureUrl = null) {
         this.positions = new Float32Array(positions);
         this.indices = new Uint16Array(indices);
         this.colors = new Float32Array(colors);
         this.normals = new Float32Array(normals);
+
+        this.textureUrl = textureUrl;
+        this.texture = null;
+        this.hasTexture = !!textureUrl;
+        this.texCoords = texCoords ? new Float32Array(texCoords) : null;
 
         this.posX = 0;
         this.posY = 0;
@@ -115,26 +120,44 @@ function makeColors(vertexCount, color) {
 // =======================================================
 // 1. Cube
 // =======================================================
-function createCube(size = 1, color = null) {
+function createCube(size = 1, color = null, textureUrl = null) {
     const s = size / 2;
 
     const positions = [
-        -s, -s, -s, s, -s, -s, s, s, -s, -s, s, -s,
-        -s, -s, s, s, -s, s, s, s, s, -s, s, s
+        -s, -s,  s,   s, -s,  s,   s,  s,  s,  -s,  s,  s,
+         s, -s, -s,  -s, -s, -s,  -s,  s, -s,   s,  s, -s,
+        -s, -s, -s,  -s, -s,  s,  -s,  s,  s,  -s,  s, -s,
+         s, -s,  s,   s, -s, -s,   s,  s, -s,   s,  s,  s,
+        -s,  s,  s,   s,  s,  s,   s,  s, -s,  -s,  s, -s,
+        -s, -s, -s,   s, -s, -s,   s, -s,  s,  -s, -s,  s,
     ];
 
     const indices = [
-        4, 5, 6, 4, 6, 7,
-        1, 0, 3, 1, 3, 2,
-        3, 7, 6, 3, 6, 2,
-        0, 1, 5, 0, 5, 4,
-        1, 2, 6, 1, 6, 5,
-        0, 4, 7, 0, 7, 3
+        0,1,2, 0,2,3,
+        4,5,6, 4,6,7,
+        8,9,10, 8,10,11,
+        12,13,14, 12,14,15,
+        16,17,18, 16,18,19,
+        20,21,22, 20,22,23
     ];
     const normals = computeNormals(positions, indices);
-    const colors = makeColors(8, color);
+    const colors = makeColors(24, color);
 
-    return new Primitive(positions, indices, colors, normals);
+    let texCoords = [];
+    if(textureUrl!=null){
+
+    texCoords = [
+        0, 1, 1, 1, 1, 0, 0, 0,
+        0, 1, 1, 1, 1, 0, 0, 0,
+        0, 1, 1, 1, 1, 0, 0, 0,
+        0, 1, 1, 1, 1, 0, 0, 0,
+        0, 1, 1, 1, 1, 0, 0, 0,
+        0, 1, 1, 1, 1, 0, 0, 0
+    ];
+
+    }
+
+    return new Primitive(positions, indices, colors, normals, texCoords, textureUrl);
 }
 
 

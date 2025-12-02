@@ -112,7 +112,7 @@ const xMin = -5; const xMax = -100;
 const zMin = -5; const zMax = -100;
 
 for(let i = 0; i < obstacleCount; i++){
-    let obs = createCube(4);
+    let obs = createCube(4,null,"textures/test.jpg");
     posX = xMin + (Math.random() * (xMax - xMin));
     posZ = zMin + (Math.random() * (zMax - zMin));
     obs.setPos([posX, 1, posZ])
