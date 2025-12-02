@@ -335,12 +335,18 @@ uUseTexture    = gl.getUniformLocation(program, "uUseTexture");
 
     prim.children.forEach(child => drawPrimitive(child, transform));
     }
-
+    let wheelRotation = 0;
     function render() {
       
       // Update kart physics
-      if (keys['ArrowUp']) kartSpeed -= acceleration;
-      if (keys['ArrowDown']) kartSpeed += acceleration;
+      if (keys['ArrowUp']) {
+        kartSpeed -= acceleration;
+        wheelRotation -= 0.1;
+      }
+      if (keys['ArrowDown']){
+        kartSpeed += acceleration;
+        wheelRotation += 0.1;
+      }
       kartSpeed = Math.max(-maxSpeed, Math.min(maxSpeed, kartSpeed));
       kartSpeed *= friction;
 
@@ -348,6 +354,10 @@ uUseTexture    = gl.getUniformLocation(program, "uUseTexture");
         if (keys['ArrowLeft']) kartAngle -= turnSpeed * (kartSpeed / maxSpeed);
         if (keys['ArrowRight']) kartAngle += turnSpeed * (kartSpeed / maxSpeed);
     }
+    wheelRL.rotY = kartSpeed + wheelRotation;
+    wheelRR.rotY = kartSpeed + wheelRotation;
+    wheelFR.rotY = kartSpeed + wheelRotation;
+    wheelFL.rotY = kartSpeed + wheelRotation;
 
     if(keys['ArrowLeft'] && !keys['ArrowRight']) {
       isTurning = -1;
