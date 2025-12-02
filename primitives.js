@@ -1,8 +1,9 @@
 class Primitive {
-    constructor(positions, indices, colors) {
+    constructor(positions, indices, colors, normals) {
         this.positions = new Float32Array(positions);
         this.indices = new Uint16Array(indices);
         this.colors = new Float32Array(colors);
+        this.normals = new Float32Array(normals);
 
         this.posX = 0;
         this.posY = 0;
@@ -118,10 +119,10 @@ function createCube(size = 1, color = null) {
         1, 2, 6, 1, 6, 5,
         0, 4, 7, 0, 7, 3
     ];
-
+    const normals = computeNormals(positions, indices);
     const colors = makeColors(8, color);
 
-    return new Primitive(positions, indices, colors);
+    return new Primitive(positions, indices, colors, normals);
 }
 
 
@@ -131,7 +132,8 @@ function createCube(size = 1, color = null) {
 // =======================================================
 function createSphere(radius = 1, segments = 32, color = null) {
     const positions = [];
-    const indices = [];
+    const normals   = [];
+    const indices   = [];
 
     for (let y = 0; y <= segments; y++) {
         const v = y / segments;
@@ -139,31 +141,35 @@ function createSphere(radius = 1, segments = 32, color = null) {
 
         for (let x = 0; x <= segments; x++) {
             const u = x / segments;
-            const phi = u * Math.PI * 2;
+            const phi = u * 2 * Math.PI;
 
-            positions.push(
-                radius * Math.sin(theta) * Math.cos(phi),
-                radius * Math.cos(theta),
-                radius * Math.sin(theta) * Math.sin(phi)
-            );
+            const px = radius * Math.sin(theta) * Math.cos(phi);
+            const py = radius * Math.cos(theta);
+            const pz = radius * Math.sin(theta) * Math.sin(phi);
+
+            positions.push(px,py,pz);
+
+            // sphere normal = normalized position
+            const len = Math.hypot(px,py,pz);
+            normals.push(px/len, py/len, pz/len);
         }
     }
 
-    const w = segments + 1;
+    const w = segments+1;
     for (let y = 0; y < segments; y++) {
         for (let x = 0; x < segments; x++) {
-            const i0 = y * w + x;
+            const i0 = y*w + x;
             const i1 = i0 + 1;
             const i2 = i0 + w;
             const i3 = i2 + 1;
 
-            indices.push(i0, i2, i1);
-            indices.push(i1, i2, i3);
+            indices.push(i0,i2,i1);
+            indices.push(i1,i2,i3);
         }
     }
 
-    const colors = makeColors(positions.length / 3, color);
-    return new Primitive(positions, indices, colors);
+    const colors = makeColors(positions.length/3, color);
+    return new Primitive(positions, indices, colors, normals);
 }
 
 
@@ -173,52 +179,58 @@ function createSphere(radius = 1, segments = 32, color = null) {
 // =======================================================
 function createCylinder(radius = 1, height = 2, segments = 32, color = null) {
     const positions = [];
-    const indices = [];
+    const normals   = [];
+    const indices   = [];
 
-    const halfH = height / 2;
+    const halfH = height/2;
 
     // side vertices
     for (let i = 0; i <= segments; i++) {
-        const t = i / segments;
-        const a = t * Math.PI * 2;
-        const x = radius * Math.cos(a);
-        const z = radius * Math.sin(a);
+        const t = (i / segments) * 2*Math.PI;
+        const x = Math.cos(t), z = Math.sin(t);
 
-        positions.push(x, -halfH, z);
-        positions.push(x, halfH, z);
+        // bottom
+        positions.push(radius*x, -halfH, radius*z);
+        normals.push(x, 0, z);
+
+        // top
+        positions.push(radius*x, halfH, radius*z);
+        normals.push(x, 0, z);
     }
 
-    // side indices
+    // side triangles
     for (let i = 0; i < segments; i++) {
-        const base = i * 2;
-        indices.push(base, base + 1, base + 2);
-        indices.push(base + 1, base + 3, base + 2);
+        const b = i*2;
+        indices.push(b, b+1, b+2);
+        indices.push(b+1, b+3, b+2);
     }
 
     // top center
-    const topCenter = positions.length / 3;
+    const topCenter = positions.length/3;
     positions.push(0, halfH, 0);
+    normals.push(0,1,0);
 
     // bottom center
-    const bottomCenter = topCenter + 1;
-    positions.push(0, -halfH, 0);
+    const bottomCenter = topCenter+1;
+    positions.push(0,-halfH,0);
+    normals.push(0,-1,0);
 
     // top cap
     for (let i = 0; i < segments; i++) {
-        const a = i * 2 + 1;
-        const b = ((i + 1) % segments) * 2 + 1;
+        const a = i*2+1;
+        const b = ((i+1)%segments)*2 + 1;
         indices.push(topCenter, b, a);
     }
 
     // bottom cap
     for (let i = 0; i < segments; i++) {
-        const a = i * 2;
-        const b = ((i + 1) % segments) * 2;
+        const a = i*2;
+        const b = ((i+1)%segments)*2;
         indices.push(bottomCenter, a, b);
     }
 
-    const colors = makeColors(positions.length / 3, color);
-    return new Primitive(positions, indices, colors);
+    const colors = makeColors(positions.length/3, color);
+    return new Primitive(positions, indices, colors, normals);
 }
 
 
@@ -228,41 +240,50 @@ function createCylinder(radius = 1, height = 2, segments = 32, color = null) {
 // =======================================================
 function createCone(radius = 1, height = 2, segments = 32, color = null) {
     const positions = [];
-    const indices = [];
+    const normals   = [];
+    const indices   = [];
 
-    const halfH = height / 2;
+    const halfH = height/2;
+    const slope = radius / height;
 
     // apex
-    const apex = positions.length / 3;
+    const apex = positions.length/3;
     positions.push(0, halfH, 0);
+    normals.push(0,1,0); // approximated (doesn't matter much for 1 point)
 
     // ring
     for (let i = 0; i <= segments; i++) {
-        const t = i / segments;
-        const a = t * 2 * Math.PI;
-        positions.push(
-            radius * Math.cos(a),
-            -halfH,
-            radius * Math.sin(a)
-        );
+        const t = (i/segments)*2*Math.PI;
+        const x = Math.cos(t), z = Math.sin(t);
+
+        positions.push(radius*x, -halfH, radius*z);
+
+        // normalized normal for cone side
+        const nx = x;
+        const ny = slope;
+        const nz = z;
+        const l = Math.hypot(nx,ny,nz);
+
+        normals.push(nx/l, ny/l, nz/l);
     }
 
-    // sides
+    // side faces
     for (let i = 1; i <= segments; i++) {
-        indices.push(apex, i + 1, i);
+        indices.push(apex, i+1, i);
     }
 
     // bottom center
-    const bottomCenter = positions.length / 3;
+    const bottomCenter = positions.length/3;
     positions.push(0, -halfH, 0);
+    normals.push(0,-1,0);
 
     // bottom cap
     for (let i = 1; i <= segments; i++) {
-        indices.push(bottomCenter, i, i + 1);
+        indices.push(bottomCenter, i, i+1);
     }
 
-    const colors = makeColors(positions.length / 3, color);
-    return new Primitive(positions, indices, colors);
+    const colors = makeColors(positions.length/3, color);
+    return new Primitive(positions, indices, colors, normals);
 }
 
 
@@ -270,15 +291,10 @@ function createCone(radius = 1, height = 2, segments = 32, color = null) {
 // =======================================================
 // 5. Torus
 // =======================================================
-function createTorus(
-    radius = 1,
-    tubeRadius = 0.3,
-    radialSegments = 32,
-    tubularSegments = 32,
-    color = null
-) {
+function createTorus(radius = 1, tubeRadius = 0.3, radialSegments = 32, tubularSegments = 32, color=null) {
     const positions = [];
-    const indices = [];
+    const normals   = [];
+    const indices   = [];
 
     for (let j = 0; j <= radialSegments; j++) {
         const v = j / radialSegments;
@@ -288,27 +304,37 @@ function createTorus(
             const u = i / tubularSegments;
             const theta = u * 2 * Math.PI;
 
+            const cx = Math.cos(phi), sx = Math.sin(phi);
+            const ct = Math.cos(theta), st = Math.sin(theta);
+
             positions.push(
-                (radius + tubeRadius * Math.cos(theta)) * Math.cos(phi),
-                tubeRadius * Math.sin(theta),
-                (radius + tubeRadius * Math.cos(theta)) * Math.sin(phi)
+                (radius + tubeRadius * ct) * cx,
+                tubeRadius * st,
+                (radius + tubeRadius * ct) * sx
             );
+
+            const nx = ct * cx;
+            const ny = st;
+            const nz = ct * sx;
+            const l = Math.hypot(nx,ny,nz);
+
+            normals.push(nx/l, ny/l, nz/l);
         }
     }
 
-    const row = tubularSegments + 1;
+    const row = tubularSegments+1;
     for (let j = 0; j < radialSegments; j++) {
         for (let i = 0; i < tubularSegments; i++) {
-            const a = j * row + i;
+            const a = j*row + i;
             const b = a + row;
 
-            indices.push(a, b, a + 1);
-            indices.push(a + 1, b, b + 1);
+            indices.push(a,b,a+1);
+            indices.push(a+1,b,b+1);
         }
     }
 
-    const colors = makeColors(positions.length / 3, color);
-    return new Primitive(positions, indices, colors);
+    const colors = makeColors(positions.length/3, color);
+    return new Primitive(positions, indices, colors, normals);
 }
 
 
@@ -327,12 +353,57 @@ function createTetrahedron(size = 1, color = null) {
     ];
 
     const indices = [
-        0, 1, 2,
-        0, 3, 1,
-        0, 2, 3,
-        1, 3, 2
+        0,1,2,
+        0,3,1,
+        0,2,3,
+        1,3,2
     ];
 
+    const normals = computeNormals(positions, indices);
     const colors = makeColors(4, color);
-    return new Primitive(positions, indices, colors);
+
+    return new Primitive(positions, indices, colors, normals);
+}
+
+function computeNormals(positions, indices) {
+    const normals = new Array(positions.length).fill(0);
+
+    for (let i = 0; i < indices.length; i += 3) {
+        const i0 = indices[i] * 3;
+        const i1 = indices[i+1] * 3;
+        const i2 = indices[i+2] * 3;
+
+        const p0 = positions.slice(i0, i0+3);
+        const p1 = positions.slice(i1, i1+3);
+        const p2 = positions.slice(i2, i2+3);
+
+        // compute face normal
+        const v1 = [
+            p1[0]-p0[0],
+            p1[1]-p0[1],
+            p1[2]-p0[2]
+        ];
+        const v2 = [
+            p2[0]-p0[0],
+            p2[1]-p0[1],
+            p2[2]-p0[2]
+        ];
+
+        const nx = v1[1]*v2[2] - v1[2]*v2[1];
+        const ny = v1[2]*v2[0] - v1[0]*v2[2];
+        const nz = v1[0]*v2[1] - v1[1]*v2[0];
+
+        // accumulate
+        normals[i0]   += nx; normals[i0+1]   += ny; normals[i0+2]   += nz;
+        normals[i1]   += nx; normals[i1+1]   += ny; normals[i1+2]   += nz;
+        normals[i2]   += nx; normals[i2+1]   += ny; normals[i2+2]   += nz;
+    }
+
+    // normalize all
+    for (let i = 0; i < normals.length; i += 3) {
+        const x = normals[i], y = normals[i+1], z = normals[i+2];
+        const l = Math.hypot(x,y,z) || 1.0;
+        normals[i] = x/l; normals[i+1] = y/l; normals[i+2] = z/l;
+    }
+    return normals;
 }
