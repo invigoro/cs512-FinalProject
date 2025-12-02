@@ -129,3 +129,57 @@ function mat4Inverse(m) {
 
     return inv;
 }
+
+function mat3FromMat4(m4) {
+    // m4 is a Float32Array[16] in column-major order
+    return new Float32Array([
+        m4[0], m4[1], m4[2],
+        m4[4], m4[5], m4[6],
+        m4[8], m4[9], m4[10]
+    ]);
+}
+function mat3InvertTranspose(m) {
+    // m is Float32Array[9]
+    const a11 = m[0], a12 = m[1], a13 = m[2];
+    const a21 = m[3], a22 = m[4], a23 = m[5];
+    const a31 = m[6], a32 = m[7], a33 = m[8];
+
+    const b11 =  a22 * a33 - a23 * a32;
+    const b12 = -a21 * a33 + a23 * a31;
+    const b13 =  a21 * a32 - a22 * a31;
+
+    const det = a11 * b11 + a12 * b12 + a13 * b13;
+
+    if (Math.abs(det) < 1e-8) {
+        // Degenerate — return identity to avoid NaN
+        return new Float32Array([
+            1,0,0,
+            0,1,0,
+            0,0,1
+        ]);
+    }
+
+    const invDet = 1.0 / det;
+
+    // Inverse matrix (not transposed yet)
+    const inv = new Float32Array([
+        b11 * invDet,
+        (-a12 * a33 + a13 * a32) * invDet,
+        ( a12 * a23 - a13 * a22) * invDet,
+
+        b12 * invDet,
+        ( a11 * a33 - a13 * a31) * invDet,
+        (-a11 * a23 + a13 * a21) * invDet,
+
+        b13 * invDet,
+        (-a11 * a32 + a12 * a31) * invDet,
+        ( a11 * a22 - a12 * a21) * invDet
+    ]);
+
+    // Return transpose(inv)
+    return new Float32Array([
+        inv[0], inv[3], inv[6],
+        inv[1], inv[4], inv[7],
+        inv[2], inv[5], inv[8]
+    ]);
+}

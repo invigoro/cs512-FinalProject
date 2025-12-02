@@ -37,31 +37,56 @@
   </div>
 
   <!-- Vertex shader -->
-  <script id="vertex-shader" type="x-shader/x-vertex">#version 300 es
+<script id="vertex-shader" type="x-shader/x-vertex">#version 300 es
 in vec3 aPosition;
 in vec3 aColor;
+in vec3 aNormal;
 
-uniform float uTime; //time in sec
 uniform mat4 uModelViewMatrix;
 uniform mat4 uProjectionMatrix;
 uniform mat4 uModelTransformationMatrix;
+uniform mat3 uNormalMatrix;
 
 out vec3 vColor;
+out vec3 vNormal;
+out vec3 vFragPos;
 
 void main() {
-  gl_Position = uProjectionMatrix * uModelViewMatrix * uModelTransformationMatrix * vec4(aPosition,1.0);
-  vColor = aColor;
+    mat4 model = uModelTransformationMatrix;
+
+    vec4 worldPos = model * vec4(aPosition, 1.0);
+    vFragPos = worldPos.xyz;
+
+    vNormal = normalize(uNormalMatrix * aNormal);
+
+    vColor = aColor;
+
+    gl_Position = uProjectionMatrix * uModelViewMatrix * worldPos;
 }
 </script>
-  <!-- Fragment Shader -->
-  <script id="fragment-shader" type="x-shader/x-fragment">#version 300 es
+<!-- Fragment Shader -->
+<script id="fragment-shader" type="x-shader/x-fragment">#version 300 es
 precision mediump float;
+
 in vec3 vColor;
+in vec3 vNormal;
+in vec3 vFragPos;
 
 out vec4 fragColor;
 
+uniform vec3 uLightPos;
+uniform vec3 uViewPos;
+
 void main() {
-  fragColor = vec4(vColor,1.0);
+    vec3 N = normalize(vNormal);
+    vec3 L = normalize(uLightPos - vFragPos);
+
+    float diff = max(dot(N, L), 0.0);
+
+    vec3 ambient = 0.25 * vColor;
+    vec3 diffuse = diff * vColor;
+
+    fragColor = vec4(ambient + diffuse, 1.0);
 }
 </script>
 
@@ -100,23 +125,19 @@ void main() {
 
 
 
-    let program, posLoc, colorLoc, uMVM, uPM, uMTM;
-    let vbo, nbo, ibo;
+let program, posLoc, colorLoc, normalLoc;
+let uMVM, uPM, uMTM, uNormalMatrix;
+let uLightPos, uViewPos;
+
+let vbo, cbo, nbo, ibo;
 
     // Buffers
-    function initBuffers() {
-      vbo = gl.createBuffer();
-      gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
-      gl.bufferData(gl.ARRAY_BUFFER, kartBase.positions, gl.STATIC_DRAW);
-
-      nbo = gl.createBuffer();
-      gl.bindBuffer(gl.ARRAY_BUFFER, nbo);
-      gl.bufferData(gl.ARRAY_BUFFER, kartBase.colors, gl.STATIC_DRAW);
-
-      ibo = gl.createBuffer();
-      gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ibo); 
-      gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, kartBase.indices, gl.STATIC_DRAW);
-    }
+function initBuffers() {
+  vbo = gl.createBuffer();
+  cbo = gl.createBuffer();
+  nbo = gl.createBuffer();
+  ibo = gl.createBuffer();
+}
     initBuffers();
 
     function initShaderProgram() {
@@ -129,6 +150,12 @@ void main() {
         uMVM = gl.getUniformLocation(program, "uModelViewMatrix");
         uPM = gl.getUniformLocation(program, "uProjectionMatrix");
         uMTM = gl.getUniformLocation(program, "uModelTransformationMatrix");
+
+        normalLoc = gl.getAttribLocation(program, "aNormal");
+
+uNormalMatrix = gl.getUniformLocation(program, "uNormalMatrix");
+uLightPos = gl.getUniformLocation(program, "uLightPos");
+uViewPos = gl.getUniformLocation(program, "uViewPos");
       } catch (e) { console.error(e); }
     }
     initShaderProgram();
@@ -169,24 +196,43 @@ void main() {
       transform = transform ?? mat4Identity();
       transform = multiplyMat4(transform, localTransform);
 
-      gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
-      gl.bufferData(gl.ARRAY_BUFFER, prim.positions, gl.STATIC_DRAW);
+  // Upload positions
+  gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
+  gl.bufferData(gl.ARRAY_BUFFER, prim.positions, gl.STATIC_DRAW);
+  gl.enableVertexAttribArray(posLoc);
+  gl.vertexAttribPointer(posLoc, 3, gl.FLOAT, false, 0, 0);
 
-      gl.bindBuffer(gl.ARRAY_BUFFER, nbo);
-      gl.bufferData(gl.ARRAY_BUFFER, prim.colors, gl.STATIC_DRAW);
+  // Upload colors
+  gl.bindBuffer(gl.ARRAY_BUFFER, cbo);
+  gl.bufferData(gl.ARRAY_BUFFER, prim.colors, gl.STATIC_DRAW);
+  gl.enableVertexAttribArray(colorLoc);
+  gl.vertexAttribPointer(colorLoc, 3, gl.FLOAT, false, 0, 0);
 
-      gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ibo);
-      gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, prim.indices, gl.STATIC_DRAW);
+  // Upload normals
+  gl.bindBuffer(gl.ARRAY_BUFFER, nbo);
+  gl.bufferData(gl.ARRAY_BUFFER, prim.normals, gl.STATIC_DRAW);
+  gl.enableVertexAttribArray(normalLoc);
+  gl.vertexAttribPointer(normalLoc, 3, gl.FLOAT, false, 0, 0);
 
-      gl.uniformMatrix4fv(uMTM, false, transform);
-      gl.drawElements(gl.TRIANGLES, prim.indices.length, gl.UNSIGNED_SHORT, 0);
+  // Upload indices
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ibo);
+  gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, prim.indices, gl.STATIC_DRAW);
 
-      prim.children.forEach(child => {
-        drawPrimitive(child,transform);
-      });
+  // Normal matrix (Mat3)
+  let normalMatrix = mat3FromMat4(transform);
+  normalMatrix = mat3InvertTranspose(normalMatrix);
+
+  gl.uniformMatrix4fv(uMTM, false, transform);
+  gl.uniformMatrix3fv(uNormalMatrix, false, normalMatrix);
+
+  gl.drawElements(gl.TRIANGLES, prim.indices.length, gl.UNSIGNED_SHORT, 0);
+
+  // Children
+  prim.children.forEach(child => drawPrimitive(child, transform));
     }
 
     function render() {
+      
       // Update kart physics
       if (keys['ArrowUp']) kartSpeed -= acceleration;
       if (keys['ArrowDown']) kartSpeed += acceleration;
@@ -257,17 +303,10 @@ void main() {
     kartModel = mat4Translate(kartModel, [kartX, 0, kartZ]);
     kartModel = mat4RotateY(kartModel, kartAngle);
 
-    
+    gl.uniform3fv(uLightPos, [5, 10, 5]);       // simple overhead light
+    gl.uniform3fv(uViewPos, [0, 3, 13]);        // approximated camera position
 
     drawPrimitive(kartBase, kartModel);
-    // gl.uniformMatrix4fv(uMTM, false, kartModel);
-    // gl.drawElements(gl.TRIANGLES, kartBase.indices.length, gl.UNSIGNED_SHORT, 0);
-
-    //reference cube to see that cam is working
-    // let refCube = mat4Identity();
-    // refCube = mat4Translate(refCube, [-1, 0, -10]); 
-    // gl.uniformMatrix4fv(uMTM, false, refCube);
-    // gl.drawElements(gl.TRIANGLES, kartBase.indices.length, gl.UNSIGNED_SHORT, 0);
 
     for(let i = 0; i < globalObjects.length; i++) {
       let obj = globalObjects[i];
