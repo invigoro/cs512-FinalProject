@@ -212,10 +212,11 @@ function createSphere(radius = 1, segments = 32, color = null) {
 // =======================================================
 // 3. Cylinder
 // =======================================================
-function createCylinder(radius = 1, height = 2, segments = 32, color = null) {
+function createCylinder(radius = 1, height = 2, segments = 32, color = null, textureUrl = null) {
     const positions = [];
     const normals   = [];
     const indices   = [];
+    const texCoords = [];
 
     const halfH = height/2;
 
@@ -223,14 +224,17 @@ function createCylinder(radius = 1, height = 2, segments = 32, color = null) {
     for (let i = 0; i <= segments; i++) {
         const t = (i / segments) * 2*Math.PI;
         const x = Math.cos(t), z = Math.sin(t);
+        const u = i / segments;
 
         // bottom
         positions.push(radius*x, -halfH, radius*z);
         normals.push(x, 0, z);
+        texCoords.push(u, 0);
 
         // top
         positions.push(radius*x, halfH, radius*z);
         normals.push(x, 0, z);
+        texCoords.push(u, 1);
     }
 
     // side triangles
@@ -244,11 +248,13 @@ function createCylinder(radius = 1, height = 2, segments = 32, color = null) {
     const topCenter = positions.length/3;
     positions.push(0, halfH, 0);
     normals.push(0,1,0);
+    texCoords.push(0.5, 0.5);
 
     // bottom center
     const bottomCenter = topCenter+1;
     positions.push(0,-halfH,0);
     normals.push(0,-1,0);
+    texCoords.push(0.5, 0.5);
 
     // top cap
     for (let i = 0; i < segments; i++) {
@@ -265,7 +271,15 @@ function createCylinder(radius = 1, height = 2, segments = 32, color = null) {
     }
 
     const colors = makeColors(positions.length/3, color);
-    return new Primitive(positions, indices, colors, normals);
+
+    let finalTexCoords = [];
+    if(textureUrl!=null){
+        finalTexCoords = texCoords;
+
+
+
+    }
+    return new Primitive(positions, indices, colors, normals, finalTexCoords, textureUrl);
 }
 
 
