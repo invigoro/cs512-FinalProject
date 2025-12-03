@@ -1,7 +1,7 @@
 class Collider {
     //Box collider only. maybe will do sphere and/or cylinder later, idk
     constructor() {
-        this.setScale([1, 1, 1]);
+        this.setScale([0.5, 0.5, 0.5]);
         this.updateParentTransform(mat4Identity());
     }
 

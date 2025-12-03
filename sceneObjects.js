@@ -4,7 +4,7 @@ const globalColliders = [];
 /* VEHICLE */
 let kartBase = createCube(.1);
 kartBase.createCollider(false);
-kartBase.collider.setScale([0.001, 0.001, 0.001]); 
+kartBase.collider.setScale([1.2,0.5,1.45]); 
 
 let chassis = createCube(2, [0.9, .02, 0.03]);
 chassis.scaY = 0.3;

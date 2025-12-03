@@ -133,6 +133,33 @@ void main() {
     fragColor = vec4(result, 1.0);
 }
 </script>
+
+  <!-- Debug Line Vertex Shader -->
+  <script id="line-vertex-shader" type="x-shader/x-vertex">#version 300 es
+precision mediump float;
+
+in vec3 aPosition;
+
+uniform mat4 uModelViewMatrix;
+uniform mat4 uProjectionMatrix;
+
+void main() {
+    gl_Position = uProjectionMatrix * uModelViewMatrix * vec4(aPosition, 1.0);
+}
+</script>
+
+  <!-- Debug Line Fragment Shader -->
+  <script id="line-fragment-shader" type="x-shader/x-fragment">#version 300 es
+precision mediump float;
+
+uniform vec3 uDebugColor;
+out vec4 fragColor;
+
+void main() {
+    fragColor = vec4(uDebugColor, 1.0);
+}
+</script>
+
   <script src="utility.js"></script>
   <script src="collider.js"></script>
   <script src="primitives.js"></script>
@@ -177,6 +204,10 @@ void main() {
     let uUseTexture;
     let uUseBump, uBumpTex, uBumpStrength;
 
+    // Debug line program
+    let lineProgram, linePosLoc, lineUMVM, lineUPM, lineUDebugColor;
+    let lineVAO, lineVBO;
+
     let vbo, cbo, nbo, ibo;
 
     // Buffers
@@ -218,7 +249,18 @@ void main() {
         uBumpStrength = gl.getUniformLocation(program, "uBumpStrength");
         uTex = gl.getUniformLocation(program, "uTex");
 
+        // Initialize line program
+        lineProgram = createProgram(gl, 
+          document.getElementById("line-vertex-shader").textContent,
+          document.getElementById("line-fragment-shader").textContent);
+        linePosLoc = gl.getAttribLocation(lineProgram, "aPosition");
+        lineUMVM = gl.getUniformLocation(lineProgram, "uModelViewMatrix");
+        lineUPM = gl.getUniformLocation(lineProgram, "uProjectionMatrix");
+        lineUDebugColor = gl.getUniformLocation(lineProgram, "uDebugColor");
 
+        // Create line VAO
+        lineVAO = gl.createVertexArray();
+        lineVBO = gl.createBuffer();
 
       } catch (e) { console.error(e); }
     }
@@ -323,6 +365,46 @@ function drawPrimitive(prim, transform = null) {
 
   prim.children.forEach(child => drawPrimitive(child, transform));
 }
+
+    // Draw collider debug visualization
+    function drawColliderDebug(collider, color = [0, 1, 0]) {
+      if (!collider.points) return;
+
+      // Create line segments for the 12 edges of a cube
+      const edges = [
+        // Bottom face
+        [0, 1], [1, 2], [2, 3], [3, 0],
+        // Top face
+        [4, 5], [5, 6], [6, 7], [7, 4],
+        // Vertical edges
+        [0, 4], [1, 5], [2, 6], [3, 7]
+      ];
+
+      const vertices = [];
+      for (const [i, j] of edges) {
+        vertices.push(...collider.points[i]);
+        vertices.push(...collider.points[j]);
+      }
+
+      gl.useProgram(lineProgram);
+      gl.bindVertexArray(lineVAO);
+      
+      gl.bindBuffer(gl.ARRAY_BUFFER, lineVBO);
+      gl.bufferData(gl.ARRAY_BUFFER, new Float32Array(vertices), gl.DYNAMIC_DRAW);
+      
+      gl.enableVertexAttribArray(linePosLoc);
+      gl.vertexAttribPointer(linePosLoc, 3, gl.FLOAT, false, 0, 0);
+
+      gl.uniformMatrix4fv(lineUPM, false, proj);
+      gl.uniformMatrix4fv(lineUMVM, false, modelViewMatrix);
+      gl.uniform3fv(lineUDebugColor, color);
+
+      gl.drawArrays(gl.LINES, 0, vertices.length / 3);
+
+      // Switch back to main program
+      gl.useProgram(program);
+    }
+
     let wheelRotation = 0;
 
 
@@ -388,6 +470,9 @@ if (prim.hasTexture) {
   
   prim.children.forEach(child => initAllVAOs(child));
 }
+
+    let modelViewMatrix;
+
     function render() {
 
       // Update kart physics
@@ -432,12 +517,11 @@ if (prim.hasTexture) {
       kartZ += Math.cos(kartAngle) * kartSpeed;
 
       gl.enable(gl.DEPTH_TEST);
-      //gl.clearColor(0, 0, 0, 1);
       gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
 
       let camZ = -kartZ - 13;
       let camX = -kartX + 0;
-      let modelViewMatrix = mat4Identity();
+      modelViewMatrix = mat4Identity();
 
 
       modelViewMatrix = mat4Translate(modelViewMatrix, [0, -3, -13]);
@@ -453,6 +537,7 @@ if (prim.hasTexture) {
 
       let deltaTime = Date.now() - startTime;
 
+      gl.useProgram(program);
       gl.uniform1f(timeLoc, deltaTime / 1000.0);
       gl.uniformMatrix4fv(uPM, false, proj);
       gl.uniformMatrix4fv(uMVM, false, modelViewMatrix);
@@ -463,9 +548,9 @@ if (prim.hasTexture) {
       kartModel = mat4Translate(kartModel, [kartX, 0, kartZ]);
       kartModel = mat4RotateY(kartModel, kartAngle);
 
-gl.uniform3fv(uLightPos, [100, 200, 100]);  // High sun position
-gl.uniform3fv(uViewPos, [[0, 3, 13]]);
-gl.uniform3fv(uLightColor, [1.0, 0.95, 0.9]);  // Slightly warm sunlight
+      gl.uniform3fv(uLightPos, [100, 200, 100]);
+      gl.uniform3fv(uViewPos, [0, 3, 13]);
+      gl.uniform3fv(uLightColor, [1.0, 0.95, 0.9]);
 
       drawPrimitive(kartBase, kartModel);
 
@@ -483,6 +568,12 @@ gl.uniform3fv(uLightColor, [1.0, 0.95, 0.9]);  // Slightly warm sunlight
         else {
           acceleration = 0.03;
         }
+      }
+
+      // Draw all collider debug visualizations
+      drawColliderDebug(kartBase.collider, [0, 0, 1]); // Blue for kart
+      for(let i = 0; i < globalColliders.length; i++) {
+        drawColliderDebug(globalColliders[i], [0, 1, 0]); // Green for obstacles
       }
 
     }
