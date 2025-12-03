@@ -119,3 +119,13 @@ for(let i = 0; i < obstacleCount; i++){
     obs.setRot([0, Math.random() * Math.PI, 0])
     globalObjects.push(obs);
 }
+
+const floor = createPlane(20, 20, [0.5,0.5,0.5], "textures/road_bump.jpg");
+floor.setPos([0, -1, 0]);
+floor.setMaterial({
+    ambient: 0.3,
+    diffuse: 0.7,
+    specular: 0.2,
+    shininess: 4
+});
+globalObjects.push(floor);

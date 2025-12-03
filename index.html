@@ -96,6 +96,17 @@ uniform bool uUseTexture;
 
 void main() {
     vec3 N = normalize(vNormal);
+    if (uUseBump) {
+      float h  = texture(uBumpTex, vTexCoord).r;
+      float hu = texture(uBumpTex, vTexCoord + vec2(0.01, 0.0)).r;
+      float hv = texture(uBumpTex, vTexCoord + vec2(0.0, 0.01)).r;
+
+    vec3 grad = vec3((h - hu) * uBumpStrength,
+                    (h - hv) * uBumpStrength,
+                    1.0);
+
+      N = normalize(N + grad);
+    }
     vec3 L = normalize(uLightPos - vPosition);
     vec3 V = normalize(-vPosition);
     vec3 R = reflect(-L, N);
@@ -107,17 +118,7 @@ void main() {
         spec = pow(max(dot(R, V), 0.0), uShininess);
     }
 
-    if (uUseBump) {
-      float h  = texture(uBumpTex, vTexCoord).r;
-      float hu = texture(uBumpTex, vTexCoord + vec2(0.01, 0.0)).r;
-      float hv = texture(uBumpTex, vTexCoord + vec2(0.0, 0.01)).r;
 
-      vec3 grad = vec3((h - hu) * uBumpStrength,
-                    (h - hv) * uBumpStrength,
-                    1.0);
-
-      N = normalize(N + grad);
-    }
 
     vec3 ambient  = uKAmbient  * vColor;
     vec3 diffuse  = uKDiffuse  * diff * vColor;
@@ -129,7 +130,7 @@ void main() {
     }
 
 
-    vec3 result = (ambient + diffuse) * texColor;
+    vec3 result = (ambient + diffuse) * texColor + specular;
     fragColor = vec4(result, 1.0);
 }
 </script>
@@ -174,6 +175,7 @@ let uMVM, uPM, uMTM, uNormalMatrix;
 let uLightPos, uViewPos;
 let uKAmbient, uKDiffuse, uKSpecular, uKShininess;
 let uUseTexture;
+let uUseBump, uBumpTex, uBumpStrength;
 
 let vbo, cbo, nbo, ibo;
 
@@ -199,16 +201,23 @@ function initBuffers() {
 
         normalLoc = gl.getAttribLocation(program, "aNormal");
 
-uNormalMatrix = gl.getUniformLocation(program, "uNormalMatrix");
-uLightPos = gl.getUniformLocation(program, "uLightPos");
-uViewPos = gl.getUniformLocation(program, "uViewPos");
+    uNormalMatrix = gl.getUniformLocation(program, "uNormalMatrix");
+    uLightPos = gl.getUniformLocation(program, "uLightPos");
+    uViewPos = gl.getUniformLocation(program, "uViewPos");
 
-uKAmbient      = gl.getUniformLocation(program, "uKAmbient");
-uKDiffuse      = gl.getUniformLocation(program, "uKDiffuse");
-uKSpecular     = gl.getUniformLocation(program, "uKSpecular");
-uShininess     = gl.getUniformLocation(program, "uShininess");
+    uKAmbient      = gl.getUniformLocation(program, "uKAmbient");
+    uKDiffuse      = gl.getUniformLocation(program, "uKDiffuse");
+    uKSpecular     = gl.getUniformLocation(program, "uKSpecular");
+    uShininess     = gl.getUniformLocation(program, "uShininess");
 
-uUseTexture    = gl.getUniformLocation(program, "uUseTexture");
+    uUseTexture = gl.getUniformLocation(program, "uUseTexture");
+    uUseBump = gl.getUniformLocation(program, "uUseBump");
+    uBumpTex = gl.getUniformLocation(program, "uBumpTex");
+    uBumpStrength = gl.getUniformLocation(program, "uBumpStrength");
+    uTex = gl.getUniformLocation(program, "uTex");
+
+
+
       } catch (e) { console.error(e); }
     }
     initShaderProgram();
@@ -316,13 +325,31 @@ uUseTexture    = gl.getUniformLocation(program, "uUseTexture");
     }
 
     // Texture
-    if (prim.hasTexture && !prim.texture) prim.texture = loadTexture(prim.textureUrl);
     if (prim.hasTexture) {
+        if (!prim.texture)
+            prim.texture = loadTexture(prim.textureUrl);
+
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, prim.texture);
         gl.uniform1i(uUseTexture, 1);
+        gl.uniform1i(uTex, 0);
     } else {
         gl.uniform1i(uUseTexture, 0);
+    }
+
+
+    // --- Bump ---
+    if (prim.hasBump) {
+        if (!prim.bumpTexture)
+            prim.bumpTexture = loadTexture(prim.textureUrl); // same URL
+
+        gl.activeTexture(gl.TEXTURE1);
+        gl.bindTexture(gl.TEXTURE_2D, prim.bumpTexture);
+        gl.uniform1i(uUseBump, 1);
+        gl.uniform1i(uBumpTex, 1);
+        gl.uniform1f(uBumpStrength, prim.bumpStrength);
+    } else {
+        gl.uniform1i(uUseBump, 0);
     }
 
     // Indices:

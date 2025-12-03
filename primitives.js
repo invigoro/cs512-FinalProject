@@ -5,10 +5,25 @@ class Primitive {
         this.colors = new Float32Array(colors);
         this.normals = new Float32Array(normals);
 
-        this.textureUrl = textureUrl;
-        this.texture = null;
+
+    this.textureUrl = textureUrl;
+    this.texCoords = texCoords ? new Float32Array(texCoords) : null;
+
+    const lower = (textureUrl || "").toLowerCase();
+    this.isBumpMap = lower.includes("bump");
+
+    if (this.isBumpMap) {
+        this.hasTexture = false;
+        this.hasBump = true;
+        this.bumpTexture = null;
+        this.bumpStrength = 1;
+    } else {
         this.hasTexture = !!textureUrl;
-        this.texCoords = texCoords ? new Float32Array(texCoords) : null;
+        this.hasBump = false;
+        this.texture = null;
+    }
+
+
 
         this.posX = 0;
         this.posY = 0;
@@ -412,6 +427,46 @@ function createTetrahedron(size = 1, color = null) {
     const colors = makeColors(4, color);
 
     return new Primitive(positions, indices, colors, normals);
+}
+// =======================================================
+// 7. Plane
+// =======================================================
+function createPlane(width = 1, depth = 1, color = null, textureUrl = null) {
+    const w = width / 2;
+    const d = depth / 2;
+
+    const positions = [
+        -w, 0, -d,
+         w, 0, -d,
+         w, 0,  d,
+        -w, 0,  d
+    ];
+
+    const normals = [
+        0, 1, 0,
+        0, 1, 0,
+        0, 1, 0,
+        0, 1, 0
+    ];
+
+    const indices = [
+        0, 1, 2,
+        0, 2, 3
+    ];
+
+    const colors = makeColors(4, color);
+
+    let texCoords = [];
+    if (textureUrl !== null) {
+        texCoords = [
+            0, 0,
+            1, 0,
+            1, 1,
+            0, 1
+        ];
+    }
+
+    return new Primitive(positions, indices, colors, normals, texCoords, textureUrl);
 }
 
 function computeNormals(positions, indices) {
