@@ -89,6 +89,48 @@ axleFL.appendChild(wheelFL);
 kartBase.appendChild(axleFR);
 kartBase.appendChild(axleFL);
 
+//Spoiler
+let spoilerColor = [0.1, 0.1, 0.1];
+let spoiler = createCube(1, spoilerColor);
+spoiler.setMaterial({
+    shininess: 128
+});
+spoiler.setSca([2, 0.01, 0.5]);
+spoiler.setPos([0, 0.8, 1.35]);
+
+let spoilerFlapL = createCube(1, spoilerColor);
+spoilerFlapL.setMaterial({
+    shininess: 128
+});
+spoilerFlapL.setSca([0.5, 0.01, 0.5]);
+spoilerFlapL.setPos([-1.21, 0.73, 1.35]);
+spoilerFlapL.setRot([0, 0, 0.3]);
+
+let spoilerFlapR = createCube(1, spoilerColor);
+spoilerFlapR.setMaterial({
+    shininess: 128
+});
+spoilerFlapR.setSca([0.5, 0.01, 0.5]);
+spoilerFlapR.setPos([1.21, 0.73, 1.35]);
+spoilerFlapR.setRot([0, 0, -0.3]);
+
+let spoilerBarL = createCylinder(0.02, 0.5, 8, spoilerColor);
+spoilerBarL.setMaterial({shininess:128});
+spoilerBarL.setPos([-0.6, .55, 1.35]);
+spoilerBarL.setSca([1, 1, 3]);
+spoilerBarL.setRot([0.3, 0, 0]);
+let spoilerBarR = createCylinder(0.02, 0.5, 8, spoilerColor);
+spoilerBarR.setMaterial({shininess:128});
+spoilerBarR.setPos([0.6, .55, 1.35]);
+spoilerBarR.setSca([1, 1, 3]);
+spoilerBarR.setRot([0.3, 0, 0]);
+
+
+kartBase.appendChild(spoiler);
+kartBase.appendChild(spoilerFlapL);
+kartBase.appendChild(spoilerFlapR);
+kartBase.appendChild(spoilerBarL);
+kartBase.appendChild(spoilerBarR);
 
 /* OBSTACLES */
 // let cube1 = createCube(4);
