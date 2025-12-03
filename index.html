@@ -227,8 +227,8 @@ void main() {
 
     // Kart physics
     let kartX = 0, kartZ = 0, kartAngle = 0, kartSpeed = 0;
-    const maxSpeed = 1;
-    const acceleration = 0.03;
+    let maxSpeed = 1;
+    let acceleration = 0.03;
     const friction = 0.97;
     const turnSpeed = 0.05;
     let isTurning = 0;
@@ -463,7 +463,7 @@ if (prim.hasTexture) {
       kartModel = mat4Translate(kartModel, [kartX, 0, kartZ]);
       kartModel = mat4RotateY(kartModel, kartAngle);
 
-      gl.uniform3fv(uLightPos, [5, 10, 5]);       // simple overhead light
+      gl.uniform3fv(uLightPos, [5, 10, 50]);       // simple overhead light
       gl.uniform3fv(uViewPos, [0, 3, 13]);        // approximated camera position
 
       drawPrimitive(kartBase, kartModel);
@@ -476,7 +476,11 @@ if (prim.hasTexture) {
       for(let i = 0; i < globalColliders.length; i++) {
         let col = globalColliders[i];
         if(col.checkOverlap(kartBase.collider.points)) {
-          console.log("COLLISION!!!");
+          kartSpeed = -kartSpeed * 0.8;
+          acceleration = 0;
+        }
+        else {
+          acceleration = 0.03;
         }
       }
 
