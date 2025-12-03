@@ -27,7 +27,7 @@ function generateRandomCircuit(size, variance, intervalCount) {
         rawPts.push([Math.cos(angle) * r, Math.sin(angle) * r]);
     }
 
-    // Close loop
+    // Close loop (duplicate start)
     rawPts.push(rawPts[0].slice());
 
     // -------- 4. Compute cumulative arc length --------
@@ -48,7 +48,6 @@ function generateRandomCircuit(size, variance, intervalCount) {
     for (let k = 0; k < intervalCount; k++) {
         const targetLen = k * targetSegLen;
 
-        // Find segment containing this arc length
         while (ti < lengths.length - 1 && lengths[ti + 1] < targetLen) {
             ti++;
         }
@@ -60,7 +59,6 @@ function generateRandomCircuit(size, variance, intervalCount) {
         const p0 = rawPts[ti];
         const p1 = rawPts[ti + 1];
 
-        // Linear interpolation
         resampled.push([
             p0[0] + (p1[0] - p0[0]) * ratio,
             p0[1] + (p1[1] - p0[1]) * ratio
@@ -70,16 +68,10 @@ function generateRandomCircuit(size, variance, intervalCount) {
     // Close loop explicitly 
     resampled.push(resampled[0].slice());
 
-    // -------- 6. Put starting point at [0, 0] --------
-    const offsetX = resampled[0][0];
-    const offsetY = resampled[0][1];
+    // -------- 6. REMOVE old "start at (0,0)" translation --------
+    // (You requested to keep the start wherever it naturally is)
 
-    for (let p of resampled) {
-        p[0] -= offsetX;
-        p[1] -= offsetY;
-    }
-
-    // -------- 7. Fit inside size × size bounds --------
+    // -------- 7. Fit inside centered size × size bounds --------
     let minX = Infinity, maxX = -Infinity;
     let minY = Infinity, maxY = -Infinity;
 
@@ -94,13 +86,30 @@ function generateRandomCircuit(size, variance, intervalCount) {
     const h = maxY - minY;
     const scale = Math.min(size / w, size / h, 1);
 
+    // Scale
     for (let p of resampled) {
         p[0] *= scale;
         p[1] *= scale;
     }
 
+    // -------- 8. Recenter around origin --------
+    // After scaling, center the bounding box on (0,0)
+    const newMinX = Math.min(...resampled.map(p => p[0]));
+    const newMaxX = Math.max(...resampled.map(p => p[0]));
+    const newMinY = Math.min(...resampled.map(p => p[1]));
+    const newMaxY = Math.max(...resampled.map(p => p[1]));
+
+    const offsetX = (newMinX + newMaxX) / 2;
+    const offsetY = (newMinY + newMaxY) / 2;
+
+    for (let p of resampled) {
+        p[0] -= offsetX;
+        p[1] -= offsetY;
+    }
+
     return resampled;
 }
+
 
 function vectGroundTo3D(vector, yVal) {
     return [vector[0], yVal, vector[1]];

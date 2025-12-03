@@ -163,25 +163,26 @@ kartBase.appendChild(rearWindow);
 // cube2.setRot([1, 0, 0]);
 // cube1.appendChild(cube2);
 
+const areaSize = 250;
+
 //random obstacles
-const obstacleCount = 20;
-const xMin = -5; const xMax = -100;
-const zMin = -5; const zMax = -100;
+const obstacleCount = 50;
+const obsMinX = -(areaSize / 2);
+const obsMaxX = (areaSize / 2);
+const obsMinZ = -(areaSize / 2);
+const obsMaxZ = (areaSize / 2);
 const obstacleSize = 4;
 
 for(let i = 0; i < obstacleCount; i++){
     let obs = createCube(1, null,"textures/crate.jpg");
-    posX = xMin + (Math.random() * (xMax - xMin));
-    posZ = zMin + (Math.random() * (zMax - zMin));
+    let posX = obsMinX + (Math.random() * (obsMaxX- obsMinX));
+    let posZ = obsMinX + (Math.random() * (obsMaxZ - obsMinZ));
     obs.setPos([posX, 1, posZ])
     obs.setSca([obstacleSize, obstacleSize, obstacleSize]);
     obs.setRot([0, Math.random() * Math.PI, 0])
     obs.createCollider(true);
     globalObjects.push(obs);
 }
-
-
-const areaSize = 250;
 
 /* GROUND */
 const groundMinX = -(areaSize / 2);
@@ -205,10 +206,12 @@ for(let i = groundMinX; i <= groundMaxX; i+=groundPanelSize) {
 }
 
 /* ROAD */
-const roadSegments = 30;
+const roadSegments = 40;
 const roadWidth = 15;
 const roadHeight = -.49;
-let circuit = generateRandomCircuit(areaSize, .1, roadSegments);
+const circuit = generateRandomCircuit(areaSize, .35, roadSegments);
+const startPosition = circuit[0];
+const startRotation = getAngleBetweenPoints(circuit[0], circuit[1]);
 for(let i = 0; i < circuit.length - 1; i++){
     let coord = circuit[i];
     let coordNext = circuit[i + 1];
@@ -233,7 +236,7 @@ for(let i = 0; i < 4; i++){
     w.setRot([0, (Math.PI/2) * i, 0]);
     let posX = i == 0 ? groundMinX : i == 2 ? groundMaxX : 0;
     let posZ = i == 1 ? groundMinZ : i == 3 ? groundMaxZ : 0;
-    w.setPos([posX, (wallHeight / 2 - 0.5), posZ]);
+    w.setPos([posX, (wallHeight / 2 - 1), posZ]);
     w.createCollider(true);
     globalObjects.push(w);
 }
