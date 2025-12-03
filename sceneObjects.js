@@ -156,7 +156,6 @@ const roadSegments = 200;
 const roadWidth = 10;
 const roadHeight = -.49;
 let circuit = generateRandomCircuit(areaSize, .05, roadSegments);
-console.log(circuit);
 for(let i = 0; i < circuit.length - 1; i++){
     let coord = circuit[i];
     let coordNext = circuit[i + 1];

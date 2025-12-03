@@ -123,7 +123,9 @@ function vectorDistance(vector1, vector2) {
 }
 
 function getAngleBetweenPoints(p1, p2) {
-    return Math.atan2(p2[1] - p1[1], p2[0] - p1[0]);
+    let dir = [p2[0] - p1[0], p2[1] - p1[1]];
+    const angleRadians = Math.atan2(dir[1], dir[0]);
+    return angleRadians;
 }
 
 function getMidpoint2d(v1, v2) {
