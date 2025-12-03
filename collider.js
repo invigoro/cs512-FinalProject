@@ -17,9 +17,9 @@ class Collider {
         this.calculatePoints();
     }
 
-    calculateTransform() {
-        this.transform = multiplyMat4(this.parentTransform, mat4Scale(mat4Identity(), [this.scaX, this.scaY, this.scaZ]));
-    }
+calculateTransform() {
+    this.transform = mat4Scale(this.parentTransform, [this.scaX, this.scaY, this.scaZ]);
+}
 
     calculatePoints() {
         this.points = this.transformUnitCubeVertices(this.transform);

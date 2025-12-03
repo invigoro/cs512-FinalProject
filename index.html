@@ -172,7 +172,7 @@ void main() {
 
     let program, posLoc, colorLoc, normalLoc, texCoordLoc;
     let uMVM, uPM, uMTM, uNormalMatrix;
-    let uLightPos, uViewPos;
+    let uLightPos, uViewPos, uLightColor;
     let uKAmbient, uKDiffuse, uKSpecular, uKShininess;
     let uUseTexture;
     let uUseBump, uBumpTex, uBumpStrength;
@@ -205,6 +205,7 @@ void main() {
         uNormalMatrix = gl.getUniformLocation(program, "uNormalMatrix");
         uLightPos = gl.getUniformLocation(program, "uLightPos");
         uViewPos = gl.getUniformLocation(program, "uViewPos");
+        uLightColor = gl.getUniformLocation(program, "uLightColor");
 
         uKAmbient = gl.getUniformLocation(program, "uKAmbient");
         uKDiffuse = gl.getUniformLocation(program, "uKDiffuse");
@@ -462,8 +463,9 @@ if (prim.hasTexture) {
       kartModel = mat4Translate(kartModel, [kartX, 0, kartZ]);
       kartModel = mat4RotateY(kartModel, kartAngle);
 
-      gl.uniform3fv(uLightPos, [5, 10, 50]);       // simple overhead light
-      gl.uniform3fv(uViewPos, [0, 3, 13]);        // approximated camera position
+gl.uniform3fv(uLightPos, [100, 200, 100]);  // High sun position
+gl.uniform3fv(uViewPos, [[0, 3, 13]]);
+gl.uniform3fv(uLightColor, [1.0, 0.95, 0.9]);  // Slightly warm sunlight
 
       drawPrimitive(kartBase, kartModel);
 

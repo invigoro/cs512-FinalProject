@@ -84,10 +84,13 @@ function multiplyMat4(a, b) {
 
 function mat4Scale(m, s) {
     let result = new Float32Array(16);
-    result.set(m);
-    result[0] *= s[0];
-    result[5] *= s[1];
-    result[10] *= s[2];
+    // Scale all columns by the respective scale factors
+    for (let i = 0; i < 4; i++) {
+        result[i]      = m[i]      * s[0];  // X column
+        result[i + 4]  = m[i + 4]  * s[1];  // Y column
+        result[i + 8]  = m[i + 8]  * s[2];  // Z column
+        result[i + 12] = m[i + 12];         
+    }
     return result;
 }
 
