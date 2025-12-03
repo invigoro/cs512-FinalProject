@@ -120,12 +120,26 @@ for(let i = 0; i < obstacleCount; i++){
     globalObjects.push(obs);
 }
 
-const floor = createPlane(20, 20, [0.5,0.5,0.5], "textures/road_bump.jpg");
-floor.setPos([0, -1, 0]);
-floor.setMaterial({
-    ambient: 0.3,
-    diffuse: 0.7,
-    specular: 0.2,
-    shininess: 4
-});
-globalObjects.push(floor);
+
+/* GROUND */
+
+const groundMinX = -100;
+const groundMaxX = 100;
+const groundMinZ = -100;
+const groundMaxZ = 100;
+const groundPanelSize = 20;
+const groundBrightnessVariance = .05;
+for(let i = groundMinX; i < groundMaxX; i+=groundPanelSize) {
+    for(let j = groundMinZ; j < groundMaxZ; j+=groundPanelSize){
+        let gbv = (Math.random() - 0.5) * groundBrightnessVariance;
+        let floor = createPlane(groundPanelSize, groundPanelSize, [0.01,0.4 + gbv,0.01], "textures/noiseTexture_bump.png");
+        floor.setPos([i, -1, j]);
+        floor.setMaterial({
+            ambient: 0.3,
+            diffuse: 0.7,
+            specular: 0.2,
+            shininess: 4
+        });
+        globalObjects.push(floor);
+    }
+}
