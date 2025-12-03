@@ -459,6 +459,13 @@ void main() {
         drawPrimitive(obj);
       }
 
+      for(let i = 0; i < globalColliders.length; i++) {
+        let col = globalColliders[i];
+        if(col.checkOverlap(kartBase.collider.points)) {
+          console.log("COLLISION!!!");
+        }
+      }
+
     }
 
     window.onload = function () {
