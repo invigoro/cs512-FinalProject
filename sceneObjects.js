@@ -127,11 +127,13 @@ for(let i = 0; i < obstacleCount; i++){
 }
 
 
+const areaSize = 200;
+
 /* GROUND */
-const groundMinX = -100;
-const groundMaxX = 100;
-const groundMinZ = -100;
-const groundMaxZ = 100;
+const groundMinX = -(areaSize / 2);
+const groundMaxX = (areaSize / 2);
+const groundMinZ = -(areaSize / 2);
+const groundMaxZ = (areaSize / 2);
 const groundPanelSize = 10;
 const groundBrightnessVariance = .05;
 for(let i = groundMinX; i <= groundMaxX; i+=groundPanelSize) {
@@ -149,9 +151,28 @@ for(let i = groundMinX; i <= groundMaxX; i+=groundPanelSize) {
     }
 }
 
+/* ROAD */
+const roadSegments = 200;
+const roadWidth = 10;
+const roadHeight = -.49;
+let circuit = generateRandomCircuit(areaSize, .05, roadSegments);
+console.log(circuit);
+for(let i = 0; i < circuit.length - 1; i++){
+    let coord = circuit[i];
+    let coordNext = circuit[i + 1];
+    let rsDist = vectorDistance(coordNext, coord);
+    let rsAngle = getAngleBetweenPoints(coord, coordNext);
+    let rs = createPlane(roadWidth, rsDist * 3, [0.3, 0.3, 0.33], "textures/noiseTexture_bump.png"); 
+    rs.setRot([0, rsAngle, 0]);
+    let mid2d = getMidpoint2d(coord, coordNext);
+    let midPoint = vectGroundTo3D(mid2d, roadHeight);
+    rs.setPos(midPoint);
+    globalObjects.push(rs);
+}
+
 /* WALLS */
 const walls = [];
-const wallLength = 200;
+const wallLength = areaSize;
 const wallHeight = 20;
 for(let i = 0; i < 4; i++){
     let w = createCube(1, [.5, .5, .5], 'textures/noiseTexture_bump.png');
