@@ -6,16 +6,19 @@ let kartBase = createCube(.1);
 kartBase.createCollider(false);
 kartBase.collider.setScale([1.2,0.5,1.45]); 
 
+let carColor = [0.9, .02, 0.03];
+let carMaterial = 
+{
+    ambient: 0.4,
+    diffuse: 0.6,
+    specular: 2.0,
+    shininess: 128
+};
 let chassis = createCube(2, [0.9, .02, 0.03]);
 chassis.scaY = 0.3;
 chassis.scaX = .75;
 chassis.scaZ = 1.5;
-chassis.setMaterial({
-    ambient: 0.1,
-    diffuse: 0.6,
-    specular: 2.0,
-    shininess: 128
-});
+chassis.setMaterial(carMaterial);
 kartBase.appendChild(chassis);
 
 //Rear axle
@@ -131,6 +134,22 @@ kartBase.appendChild(spoilerFlapL);
 kartBase.appendChild(spoilerFlapR);
 kartBase.appendChild(spoilerBarL);
 kartBase.appendChild(spoilerBarR);
+
+
+//Cabin
+let windowColor = [.6, 0.98, 0.98]; //light blu
+let mainCabin = createCube(1, carColor);
+mainCabin.setPos([0, .6, .2]);
+mainCabin.setSca([1, 0.3, 1]);
+mainCabin.setMaterial(carMaterial);
+
+let rearWindow = createCube(1, windowColor);
+rearWindow.setPos([0, 0.4, .75]);
+rearWindow.setSca([1, 0.3, 0.5]);
+rearWindow.setRot([.9, 0, 0]);
+
+kartBase.appendChild(mainCabin);
+kartBase.appendChild(rearWindow);
 
 /* OBSTACLES */
 // let cube1 = createCube(4);
