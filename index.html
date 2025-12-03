@@ -476,7 +476,7 @@ if (prim.hasTexture) {
       for(let i = 0; i < globalColliders.length; i++) {
         let col = globalColliders[i];
         if(col.checkOverlap(kartBase.collider.points)) {
-          kartSpeed = -kartSpeed * 0.8;
+          kartSpeed = -kartSpeed * 1.8;
           acceleration = 0;
         }
         else {
