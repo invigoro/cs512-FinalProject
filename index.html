@@ -171,7 +171,7 @@ void main() {
 
 
 
-    let program, posLoc, colorLoc, normalLoc;
+    let program, posLoc, colorLoc, normalLoc, texCoordLoc;
     let uMVM, uPM, uMTM, uNormalMatrix;
     let uLightPos, uViewPos;
     let uKAmbient, uKDiffuse, uKSpecular, uKShininess;
@@ -201,6 +201,7 @@ void main() {
         uMTM = gl.getUniformLocation(program, "uModelTransformationMatrix");
 
         normalLoc = gl.getAttribLocation(program, "aNormal");
+        texCoordLoc = gl.getAttribLocation(program, "aTexCoord");
 
         uNormalMatrix = gl.getUniformLocation(program, "uNormalMatrix");
         uLightPos = gl.getUniformLocation(program, "uLightPos");
@@ -252,6 +253,7 @@ void main() {
 
     function loadTexture(url) {
       const texture = gl.createTexture();
+      
       const image = new Image();
       image.crossOrigin = "anonymous";
       image.onload = () => {
@@ -266,107 +268,126 @@ void main() {
       return texture;
     }
 
-    function drawPrimitive(prim, transform = null) {
-      let T = mat4Translate(mat4Identity(), [prim.posX, prim.posY, prim.posZ]);
-      let R = prim.getRotationMatrix();
-      let S = mat4Scale(mat4Identity(), [prim.scaX, prim.scaY, prim.scaZ]);
-      let localTransform = multiplyMat4(multiplyMat4(T, R), S);
-      transform = transform ?? mat4Identity();
-      transform = multiplyMat4(transform, localTransform);
-      if (prim.collider) {
-        prim.collider.updateParentTransform(transform);
-      }
-
-      // Upload positions
-      gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
-      gl.bufferData(gl.ARRAY_BUFFER, prim.positions, gl.STATIC_DRAW);
-      gl.enableVertexAttribArray(posLoc);
-      gl.vertexAttribPointer(posLoc, 3, gl.FLOAT, false, 0, 0);
-
-      // Upload colors
-      gl.bindBuffer(gl.ARRAY_BUFFER, cbo);
-      gl.bufferData(gl.ARRAY_BUFFER, prim.colors, gl.STATIC_DRAW);
-      gl.enableVertexAttribArray(colorLoc);
-      gl.vertexAttribPointer(colorLoc, 3, gl.FLOAT, false, 0, 0);
-
-      // ---- NORMALS ----
-      let normalMatrix = mat3FromMat4(transform);
-      normalMatrix = mat3InvertTranspose(normalMatrix);
-      gl.uniformMatrix3fv(uNormalMatrix, false, normalMatrix);
-
-      // ---- MATERIAL ----
-      gl.uniform1f(uKAmbient, prim.kAmbient);
-      gl.uniform1f(uKDiffuse, prim.kDiffuse);
-      gl.uniform1f(uKSpecular, prim.kSpecular);
-      gl.uniform1f(uShininess, prim.shininess);
-
-      // ---- Buffers ----
-      gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
-      gl.bufferData(gl.ARRAY_BUFFER, prim.positions, gl.STATIC_DRAW);
-      gl.vertexAttribPointer(posLoc, 3, gl.FLOAT, false, 0, 0);
-      gl.enableVertexAttribArray(posLoc);
-
-      // Normals:
-      gl.bindBuffer(gl.ARRAY_BUFFER, nbo);
-      gl.bufferData(gl.ARRAY_BUFFER, prim.normals, gl.STATIC_DRAW);
-      gl.vertexAttribPointer(normalLoc, 3, gl.FLOAT, false, 0, 0);
-      gl.enableVertexAttribArray(normalLoc);
-
-      // Colors:
-      gl.bindBuffer(gl.ARRAY_BUFFER, cbo);
-      gl.bufferData(gl.ARRAY_BUFFER, prim.colors, gl.STATIC_DRAW);
-      gl.vertexAttribPointer(colorLoc, 3, gl.FLOAT, false, 0, 0);
-      gl.enableVertexAttribArray(colorLoc);
-
-      if (prim.hasTexture && prim.texCoords) {
-        if (!prim.texBuffer) prim.texBuffer = gl.createBuffer();
-        gl.bindBuffer(gl.ARRAY_BUFFER, prim.texBuffer);
-        gl.bufferData(gl.ARRAY_BUFFER, prim.texCoords, gl.STATIC_DRAW);
-
-        const texLoc = gl.getAttribLocation(program, "aTexCoord");
-        gl.enableVertexAttribArray(texLoc);
-        gl.vertexAttribPointer(texLoc, 2, gl.FLOAT, false, 0, 0);
-      }
-
-      // Texture
-      if (prim.hasTexture) {
-        if (!prim.texture)
-          prim.texture = loadTexture(prim.textureUrl);
-
-        gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_2D, prim.texture);
-        gl.uniform1i(uUseTexture, 1);
-        gl.uniform1i(uTex, 0);
-      } else {
-        gl.uniform1i(uUseTexture, 0);
-      }
+function drawPrimitive(prim, transform = null) {
+  let T = mat4Translate(mat4Identity(), [prim.posX, prim.posY, prim.posZ]);
+  let R = prim.getRotationMatrix();
+  let S = mat4Scale(mat4Identity(), [prim.scaX, prim.scaY, prim.scaZ]);
+  let localTransform = multiplyMat4(multiplyMat4(T, R), S);
+  transform = transform ?? mat4Identity();
+  transform = multiplyMat4(transform, localTransform);
+  
+  if (prim.collider) {
+    prim.collider.updateParentTransform(transform);
+  }
 
 
-      // --- Bump ---
-      if (prim.hasBump) {
-        if (!prim.bumpTexture)
-          prim.bumpTexture = loadTexture(prim.textureUrl); // same URL
+  gl.bindVertexArray(prim.vao);
+  
 
-        gl.activeTexture(gl.TEXTURE1);
-        gl.bindTexture(gl.TEXTURE_2D, prim.bumpTexture);
-        gl.uniform1i(uUseBump, 1);
-        gl.uniform1i(uBumpTex, 1);
-        gl.uniform1f(uBumpStrength, prim.bumpStrength);
-      } else {
-        gl.uniform1i(uUseBump, 0);
-      }
 
-      // Indices:
-      gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ibo);
-      gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, prim.indices, gl.STATIC_DRAW);
+  gl.uniformMatrix4fv(uMTM, false, transform);
+  
+  let normalMatrix = mat3FromMat4(transform);
+  normalMatrix = mat3InvertTranspose(normalMatrix);
+  gl.uniformMatrix3fv(uNormalMatrix, false, normalMatrix);
 
-      gl.uniformMatrix4fv(uMTM, false, transform);
+  gl.uniform1f(uKAmbient, prim.kAmbient);
+  gl.uniform1f(uKDiffuse, prim.kDiffuse);
+  gl.uniform1f(uKSpecular, prim.kSpecular);
+  gl.uniform1f(uShininess, prim.shininess);
 
-      gl.drawElements(gl.TRIANGLES, prim.indices.length, gl.UNSIGNED_SHORT, 0);
+  if (prim.hasTexture) {
+    if (!prim.texture)
+      prim.texture = loadTexture(prim.textureUrl);
+    gl.activeTexture(gl.TEXTURE0);
+    gl.bindTexture(gl.TEXTURE_2D, prim.texture);
+    gl.uniform1i(uUseTexture, 1);
+    gl.uniform1i(uTex, 0);
+  } else {
+    gl.uniform1i(uUseTexture, 0);
+  }
 
-      prim.children.forEach(child => drawPrimitive(child, transform));
-    }
+  if (prim.hasBump) {
+    if (!prim.bumpTexture)
+      prim.bumpTexture = loadTexture(prim.bumpTextureUrl);
+    gl.activeTexture(gl.TEXTURE1);
+    gl.bindTexture(gl.TEXTURE_2D, prim.bumpTexture);
+    gl.uniform1i(uUseBump, 1);
+    gl.uniform1i(uBumpTex, 1);
+    gl.uniform1f(uBumpStrength, prim.bumpStrength);
+  } else {
+    gl.uniform1i(uUseBump, 0);
+  }
+
+  gl.drawElements(gl.TRIANGLES, prim.indices.length, gl.UNSIGNED_SHORT, 0);
+
+  prim.children.forEach(child => drawPrimitive(child, transform));
+}
     let wheelRotation = 0;
+
+
+    function createVAO(prim) {
+  const vao = gl.createVertexArray();
+  gl.bindVertexArray(vao);
+
+  // Position buffer
+  const posBuffer = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, posBuffer);
+  gl.bufferData(gl.ARRAY_BUFFER, prim.positions, gl.STATIC_DRAW);
+  gl.enableVertexAttribArray(posLoc);
+  gl.vertexAttribPointer(posLoc, 3, gl.FLOAT, false, 0, 0);
+
+  // Normal buffer
+  const normalBuffer = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, normalBuffer);
+  gl.bufferData(gl.ARRAY_BUFFER, prim.normals, gl.STATIC_DRAW);
+  gl.enableVertexAttribArray(normalLoc);
+  gl.vertexAttribPointer(normalLoc, 3, gl.FLOAT, false, 0, 0);
+
+  // Color buffer
+  const colorBuffer = gl.createBuffer();
+  gl.bindBuffer(gl.ARRAY_BUFFER, colorBuffer);
+  gl.bufferData(gl.ARRAY_BUFFER, prim.colors, gl.STATIC_DRAW);
+  gl.enableVertexAttribArray(colorLoc);
+  gl.vertexAttribPointer(colorLoc, 3, gl.FLOAT, false, 0, 0);
+
+  // Texture coordinates
+  if (prim.hasTexture||prim.hasBump) {
+    const texBuffer = gl.createBuffer();
+    gl.bindBuffer(gl.ARRAY_BUFFER, texBuffer);
+    gl.bufferData(gl.ARRAY_BUFFER, prim.texCoords, gl.STATIC_DRAW);
+    gl.enableVertexAttribArray(texCoordLoc);
+    gl.vertexAttribPointer(texCoordLoc, 2, gl.FLOAT, false, 0, 0);
+  }
+  // Index buffer
+  const indexBuffer = gl.createBuffer();
+  gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, indexBuffer);
+  gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, prim.indices, gl.STATIC_DRAW);
+
+  gl.bindVertexArray(null);
+  
+  return vao;
+}
+
+function initAllVAOs(prim) {
+  if (!prim.vao) {
+    prim.vao = createVAO(prim);
+    
+if (prim.hasTexture) {
+      if (!prim.texture) {
+        prim.texture = loadTexture(prim.textureUrl);
+      }
+    }
+    
+    if (prim.hasBump) {
+      if (!prim.bumpTexture) {
+        prim.bumpTexture = loadTexture(prim.textureUrl); 
+      }
+    }
+  }
+  
+  prim.children.forEach(child => initAllVAOs(child));
+}
     function render() {
 
       // Update kart physics
@@ -436,14 +457,7 @@ void main() {
       gl.uniformMatrix4fv(uPM, false, proj);
       gl.uniformMatrix4fv(uMVM, false, modelViewMatrix);
 
-      gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
-      gl.enableVertexAttribArray(posLoc);
-      gl.vertexAttribPointer(posLoc, 3, gl.FLOAT, false, 0, 0);
 
-      gl.bindBuffer(gl.ARRAY_BUFFER, nbo);
-      gl.enableVertexAttribArray(colorLoc);
-      gl.vertexAttribPointer(colorLoc, 3, gl.FLOAT, false, 0, 0);
-      gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ibo);
 
       let kartModel = mat4Identity();
       kartModel = mat4Translate(kartModel, [kartX, 0, kartZ]);
@@ -469,6 +483,8 @@ void main() {
     }
 
     window.onload = function () {
+      initAllVAOs(kartBase);
+      globalObjects.forEach(obj => initAllVAOs(obj));
       setInterval(render, 30);
     }
 
