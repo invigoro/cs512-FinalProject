@@ -113,12 +113,14 @@ kartBase.appendChild(axleFL);
 const obstacleCount = 20;
 const xMin = -5; const xMax = -100;
 const zMin = -5; const zMax = -100;
+const obstacleSize = 4;
 
 for(let i = 0; i < obstacleCount; i++){
-    let obs = createCube(4,null,"textures/test.jpg");
+    let obs = createCube(1, null,"textures/test.jpg");
     posX = xMin + (Math.random() * (xMax - xMin));
     posZ = zMin + (Math.random() * (zMax - zMin));
     obs.setPos([posX, 1, posZ])
+    obs.setSca([obstacleSize, obstacleSize, obstacleSize]);
     obs.setRot([0, Math.random() * Math.PI, 0])
     obs.createCollider(true);
     globalObjects.push(obs);
@@ -126,15 +128,14 @@ for(let i = 0; i < obstacleCount; i++){
 
 
 /* GROUND */
-
 const groundMinX = -100;
 const groundMaxX = 100;
 const groundMinZ = -100;
 const groundMaxZ = 100;
 const groundPanelSize = 10;
 const groundBrightnessVariance = .05;
-for(let i = groundMinX; i < groundMaxX; i+=groundPanelSize) {
-    for(let j = groundMinZ; j < groundMaxZ; j+=groundPanelSize){
+for(let i = groundMinX; i <= groundMaxX; i+=groundPanelSize) {
+    for(let j = groundMinZ; j <= groundMaxZ; j+=groundPanelSize){
         let gbv = (Math.random() - 0.5) * groundBrightnessVariance;
         let floor = createPlane(groundPanelSize, groundPanelSize, [0.01,0.35 + gbv,0.01], "textures/noiseTexture_bump.png");
         floor.setPos([i, -.5, j]);
@@ -146,4 +147,19 @@ for(let i = groundMinX; i < groundMaxX; i+=groundPanelSize) {
         });
         globalObjects.push(floor);
     }
+}
+
+/* WALLS */
+const walls = [];
+const wallLength = 200;
+const wallHeight = 20;
+for(let i = 0; i < 4; i++){
+    let w = createCube(1, [.5, .5, .5], 'textures/noiseTexture_bump.png');
+    w.setSca([1, wallHeight, wallLength]);
+    w.setRot([0, (Math.PI/2) * i, 0]);
+    let posX = i == 0 ? groundMinX : i == 2 ? groundMaxX : 0;
+    let posZ = i == 1 ? groundMinZ : i == 3 ? groundMaxZ : 0;
+    w.setPos([posX, (wallHeight / 2 - 0.5), posZ]);
+    w.createCollider(true);
+    globalObjects.push(w);
 }

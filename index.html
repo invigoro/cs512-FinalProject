@@ -242,7 +242,7 @@ void main() {
     });
     document.addEventListener('keyup', e => keys[e.key] = false);
 
-    let fov = Math.PI / 4, aspect = canvas.width / canvas.height, zNear = 0.1, zFar = 100;
+    let fov = Math.PI / 4, aspect = canvas.width / canvas.height, zNear = 0.1, zFar = 1000;
     let f = 1 / Math.tan(fov / 2);
     let proj = new Float32Array([
       f / aspect, 0, 0, 0, 0, f, 0, 0, 0, 0, (zFar + zNear) / (zNear - zFar), -1, 0, 0, (2 * zFar * zNear) / (zNear - zFar), 0
