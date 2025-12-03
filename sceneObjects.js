@@ -24,7 +24,6 @@ axleRear.rotX = Math.PI / 2;
 axleRear.rotY = Math.PI / 2;
 axleRear.posZ = 1.3;
 axleRear.setMaterial({
-    ambient: 0.1,
     diffuse: 0.6,
     specular: 2.0,
     shininess: 128
@@ -32,7 +31,6 @@ axleRear.setMaterial({
 let wheelRL = createCylinder(.5,.25, 32, [0.35, 0.35, 0.35],"textures/tire.png");
 wheelRL.posY = -1;
 wheelRL.setMaterial({
-    ambient: 0.2,
     diffuse: 1.0,
     specular: 0.1,
     shininess: 8
@@ -41,7 +39,6 @@ axleRear.appendChild(wheelRL);
 let wheelRR = createCylinder(.5,.25, 32, [0.35, 0.35, 0.35],"textures/tire.png");
 wheelRR.posY = 1;
 wheelRR.setMaterial({
-    ambient: 0.2,
     diffuse: 1.0,
     specular: 0.1,
     shininess: 8
@@ -57,7 +54,6 @@ axleFR.rotY = Math.PI / 2;
 axleFR.posZ = -1.1;
 axleFR.posX = .5;
 axleFR.setMaterial({
-    ambient: 0.1,
     diffuse: 0.6,
     specular: 2.0,
     shininess: 128
@@ -65,7 +61,6 @@ axleFR.setMaterial({
 let wheelFR = createCylinder(.5,.25, 32, [0.35, 0.35, 0.35],"textures/tire.png");
 wheelFR.posY = .5;
 wheelFR.setMaterial({
-    ambient: 0.2,
     diffuse: 1.0,
     specular: 0.1,
     shininess: 8
@@ -78,7 +73,6 @@ axleFL.rotY = Math.PI / 2;
 axleFL.posZ = -1.1;
 axleFL.posX = -.5;
 axleFL.setMaterial({
-    ambient: 0.1,
     diffuse: 0.6,
     specular: 2.0,
     shininess: 128
@@ -86,7 +80,6 @@ axleFL.setMaterial({
 let wheelFL = createCylinder(.5,.25, 32, [0.35, 0.35, 0.35],"textures/tire.png");
 wheelFL.posY = -.5;
 wheelFL.setMaterial({
-    ambient: 0.2,
     diffuse: 1.0,
     specular: 0.1,
     shininess: 8
@@ -142,7 +135,6 @@ for(let i = groundMinX; i <= groundMaxX; i+=groundPanelSize) {
         let floor = createPlane(groundPanelSize, groundPanelSize, [0.01,0.35 + gbv,0.01], "textures/noiseTexture_bump.png");
         floor.setPos([i, -.5, j]);
         floor.setMaterial({
-            ambient: 0.3,
             diffuse: 0.7,
             specular: 0.2,
             shininess: 4

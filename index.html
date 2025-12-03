@@ -101,24 +101,24 @@ void main() {
       float hu = texture(uBumpTex, vTexCoord + vec2(0.01, 0.0)).r;
       float hv = texture(uBumpTex, vTexCoord + vec2(0.0, 0.01)).r;
 
-    vec3 grad = vec3((h - hu) * uBumpStrength,
-                    (h - hv) * uBumpStrength,
-                    1.0);
+      vec3 grad = vec3((h - hu) * uBumpStrength,
+                      (h - hv) * uBumpStrength,
+                      1.0);
 
       N = normalize(N + grad);
     }
     vec3 L = normalize(uLightPos - vPosition);
     vec3 V = normalize(-vPosition);
-    vec3 R = reflect(-L, N);
+    
+    // Blinn-Phong: use halfway vector instead of reflection
+    vec3 H = normalize(L + V);
 
     float diff = max(dot(N, L), 0.0);
     float spec = 0.0;
 
     if (diff > 0.0) {
-        spec = pow(max(dot(R, V), 0.0), uShininess);
+        spec = pow(max(dot(N, H), 0.0), uShininess);
     }
-
-
 
     vec3 ambient  = uKAmbient  * vColor;
     vec3 diffuse  = uKDiffuse  * diff * vColor;
@@ -128,7 +128,6 @@ void main() {
     if (uUseTexture) {
         texColor = texture(uTex, vTexCoord).rgb;
     }
-
 
     vec3 result = (ambient + diffuse) * texColor + specular;
     fragColor = vec4(result, 1.0);
