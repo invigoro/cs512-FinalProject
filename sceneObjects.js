@@ -1,7 +1,9 @@
 const globalObjects = [];
+const globalColliders = [];
 
 /* VEHICLE */
 let kartBase = createCube(.1);
+kartBase.createCollider(false);
 
 let chassis = createCube(2, [0.9, .02, 0.03]);
 chassis.scaY = 0.3;
@@ -95,16 +97,16 @@ kartBase.appendChild(axleFL);
 
 
 /* OBSTACLES */
-let cube1 = createCube(4);
-cube1.setPos([-1, 1, -10]);
-cube1.setRot([0, 1, 0]);
-globalObjects.push(cube1);
+// let cube1 = createCube(4);
+// cube1.setPos([-1, 1, -10]);
+// cube1.setRot([0, 1, 0]);
+// globalObjects.push(cube1);
 
-let cube2 = createCube(2);
-cube2.setPos([0, 1, 0]);
-cube2.setSca([1, 5, 1]);
-cube2.setRot([1, 0, 0]);
-cube1.appendChild(cube2);
+// let cube2 = createCube(2);
+// cube2.setPos([0, 1, 0]);
+// cube2.setSca([1, 5, 1]);
+// cube2.setRot([1, 0, 0]);
+// cube1.appendChild(cube2);
 
 //random obstacles
 const obstacleCount = 20;
@@ -117,6 +119,7 @@ for(let i = 0; i < obstacleCount; i++){
     posZ = zMin + (Math.random() * (zMax - zMin));
     obs.setPos([posX, 1, posZ])
     obs.setRot([0, Math.random() * Math.PI, 0])
+    obs.createCollider(true);
     globalObjects.push(obs);
 }
 
@@ -127,13 +130,13 @@ const groundMinX = -100;
 const groundMaxX = 100;
 const groundMinZ = -100;
 const groundMaxZ = 100;
-const groundPanelSize = 20;
+const groundPanelSize = 10;
 const groundBrightnessVariance = .05;
 for(let i = groundMinX; i < groundMaxX; i+=groundPanelSize) {
     for(let j = groundMinZ; j < groundMaxZ; j+=groundPanelSize){
         let gbv = (Math.random() - 0.5) * groundBrightnessVariance;
-        let floor = createPlane(groundPanelSize, groundPanelSize, [0.01,0.4 + gbv,0.01], "textures/noiseTexture_bump.png");
-        floor.setPos([i, -1, j]);
+        let floor = createPlane(groundPanelSize, groundPanelSize, [0.01,0.35 + gbv,0.01], "textures/noiseTexture_bump.png");
+        floor.setPos([i, -.5, j]);
         floor.setMaterial({
             ambient: 0.3,
             diffuse: 0.7,

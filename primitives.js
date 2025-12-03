@@ -5,7 +5,7 @@ class Primitive {
         this.colors = new Float32Array(colors);
         this.normals = new Float32Array(normals);
 
-
+        this.collider = null;
     this.textureUrl = textureUrl;
     this.texCoords = texCoords ? new Float32Array(texCoords) : null;
 
@@ -101,6 +101,11 @@ class Primitive {
         if (diffuse   !== undefined) this.kDiffuse  = diffuse;
         if (specular  !== undefined) this.kSpecular = specular;
         if (shininess !== undefined) this.shininess = shininess;
+    }
+
+    createCollider(addToGlobals = true) {
+        this.collider = new Collider(this);
+        if(addToGlobals) globalColliders.push(this.collider);
     }
 }
 

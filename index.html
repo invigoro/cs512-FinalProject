@@ -21,7 +21,7 @@
 
     canvas {
       border: 1px solid #444;
-    background: #757474;
+      background: #757474;
 
     }
   </style>
@@ -37,7 +37,7 @@
   </div>
 
   <!-- Vertex shader -->
-<script id="vertex-shader" type="x-shader/x-vertex">#version 300 es
+  <script id="vertex-shader" type="x-shader/x-vertex">#version 300 es
 precision mediump float;
 
 in vec3 aPosition;
@@ -66,8 +66,8 @@ void main() {
     vTexCoord = aTexCoord;
 }
 </script>
-<!-- Fragment Shader -->
-<script id="fragment-shader" type="x-shader/x-fragment">#version 300 es
+  <!-- Fragment Shader -->
+  <script id="fragment-shader" type="x-shader/x-fragment">#version 300 es
 precision mediump float;
 
 in vec3 vColor;
@@ -135,6 +135,7 @@ void main() {
 }
 </script>
 
+  <script src="collider.js"></script>
   <script src="primitives.js"></script>
   <script src="transformation.js"></script>
   <script src="sceneObjects.js"></script>
@@ -170,22 +171,22 @@ void main() {
 
 
 
-let program, posLoc, colorLoc, normalLoc;
-let uMVM, uPM, uMTM, uNormalMatrix;
-let uLightPos, uViewPos;
-let uKAmbient, uKDiffuse, uKSpecular, uKShininess;
-let uUseTexture;
-let uUseBump, uBumpTex, uBumpStrength;
+    let program, posLoc, colorLoc, normalLoc;
+    let uMVM, uPM, uMTM, uNormalMatrix;
+    let uLightPos, uViewPos;
+    let uKAmbient, uKDiffuse, uKSpecular, uKShininess;
+    let uUseTexture;
+    let uUseBump, uBumpTex, uBumpStrength;
 
-let vbo, cbo, nbo, ibo;
+    let vbo, cbo, nbo, ibo;
 
     // Buffers
-function initBuffers() {
-  vbo = gl.createBuffer();
-  cbo = gl.createBuffer();
-  nbo = gl.createBuffer();
-  ibo = gl.createBuffer();
-}
+    function initBuffers() {
+      vbo = gl.createBuffer();
+      cbo = gl.createBuffer();
+      nbo = gl.createBuffer();
+      ibo = gl.createBuffer();
+    }
     initBuffers();
 
     function initShaderProgram() {
@@ -201,20 +202,20 @@ function initBuffers() {
 
         normalLoc = gl.getAttribLocation(program, "aNormal");
 
-    uNormalMatrix = gl.getUniformLocation(program, "uNormalMatrix");
-    uLightPos = gl.getUniformLocation(program, "uLightPos");
-    uViewPos = gl.getUniformLocation(program, "uViewPos");
+        uNormalMatrix = gl.getUniformLocation(program, "uNormalMatrix");
+        uLightPos = gl.getUniformLocation(program, "uLightPos");
+        uViewPos = gl.getUniformLocation(program, "uViewPos");
 
-    uKAmbient      = gl.getUniformLocation(program, "uKAmbient");
-    uKDiffuse      = gl.getUniformLocation(program, "uKDiffuse");
-    uKSpecular     = gl.getUniformLocation(program, "uKSpecular");
-    uShininess     = gl.getUniformLocation(program, "uShininess");
+        uKAmbient = gl.getUniformLocation(program, "uKAmbient");
+        uKDiffuse = gl.getUniformLocation(program, "uKDiffuse");
+        uKSpecular = gl.getUniformLocation(program, "uKSpecular");
+        uShininess = gl.getUniformLocation(program, "uShininess");
 
-    uUseTexture = gl.getUniformLocation(program, "uUseTexture");
-    uUseBump = gl.getUniformLocation(program, "uUseBump");
-    uBumpTex = gl.getUniformLocation(program, "uBumpTex");
-    uBumpStrength = gl.getUniformLocation(program, "uBumpStrength");
-    uTex = gl.getUniformLocation(program, "uTex");
+        uUseTexture = gl.getUniformLocation(program, "uUseTexture");
+        uUseBump = gl.getUniformLocation(program, "uUseBump");
+        uBumpTex = gl.getUniformLocation(program, "uBumpTex");
+        uBumpStrength = gl.getUniformLocation(program, "uBumpStrength");
+        uTex = gl.getUniformLocation(program, "uTex");
 
 
 
@@ -237,7 +238,7 @@ function initBuffers() {
     let keys = {};
     document.addEventListener('keydown', e => {
       keys[e.key] = true;
-      if(['ArrowUp','ArrowDown','ArrowLeft','ArrowRight'].includes(e.key)) e.preventDefault();
+      if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) e.preventDefault();
     });
     document.addEventListener('keyup', e => keys[e.key] = false);
 
@@ -250,71 +251,74 @@ function initBuffers() {
     let startTime = Date.now();
 
     function loadTexture(url) {
-        const texture = gl.createTexture();      
-        const image = new Image();
-        image.crossOrigin = "anonymous"; 
-        image.onload = () => {
+      const texture = gl.createTexture();
+      const image = new Image();
+      image.crossOrigin = "anonymous";
+      image.onload = () => {
         gl.bindTexture(gl.TEXTURE_2D, texture);
         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, image);
         gl.generateMipmap(gl.TEXTURE_2D);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.REPEAT);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.REPEAT);
-        };
-        image.src = url;
-          
-        return texture;
+      };
+      image.src = url;
+
+      return texture;
     }
 
     function drawPrimitive(prim, transform = null) {
       let T = mat4Translate(mat4Identity(), [prim.posX, prim.posY, prim.posZ]);
-      let R =  prim.getRotationMatrix();
+      let R = prim.getRotationMatrix();
       let S = mat4Scale(mat4Identity(), [prim.scaX, prim.scaY, prim.scaZ]);
       let localTransform = multiplyMat4(multiplyMat4(T, R), S);
       transform = transform ?? mat4Identity();
       transform = multiplyMat4(transform, localTransform);
+      if (prim.collider) {
+        prim.collider.updateParentTransform(transform);
+      }
 
-  // Upload positions
-  gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
-  gl.bufferData(gl.ARRAY_BUFFER, prim.positions, gl.STATIC_DRAW);
-  gl.enableVertexAttribArray(posLoc);
-  gl.vertexAttribPointer(posLoc, 3, gl.FLOAT, false, 0, 0);
+      // Upload positions
+      gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
+      gl.bufferData(gl.ARRAY_BUFFER, prim.positions, gl.STATIC_DRAW);
+      gl.enableVertexAttribArray(posLoc);
+      gl.vertexAttribPointer(posLoc, 3, gl.FLOAT, false, 0, 0);
 
-  // Upload colors
-  gl.bindBuffer(gl.ARRAY_BUFFER, cbo);
-  gl.bufferData(gl.ARRAY_BUFFER, prim.colors, gl.STATIC_DRAW);
-  gl.enableVertexAttribArray(colorLoc);
-  gl.vertexAttribPointer(colorLoc, 3, gl.FLOAT, false, 0, 0);
+      // Upload colors
+      gl.bindBuffer(gl.ARRAY_BUFFER, cbo);
+      gl.bufferData(gl.ARRAY_BUFFER, prim.colors, gl.STATIC_DRAW);
+      gl.enableVertexAttribArray(colorLoc);
+      gl.vertexAttribPointer(colorLoc, 3, gl.FLOAT, false, 0, 0);
 
-  // ---- NORMALS ----
-    let normalMatrix = mat3FromMat4(transform);
-    normalMatrix = mat3InvertTranspose(normalMatrix);
-    gl.uniformMatrix3fv(uNormalMatrix, false, normalMatrix);
+      // ---- NORMALS ----
+      let normalMatrix = mat3FromMat4(transform);
+      normalMatrix = mat3InvertTranspose(normalMatrix);
+      gl.uniformMatrix3fv(uNormalMatrix, false, normalMatrix);
 
-    // ---- MATERIAL ----
-    gl.uniform1f(uKAmbient,  prim.kAmbient);
-    gl.uniform1f(uKDiffuse,  prim.kDiffuse);
-    gl.uniform1f(uKSpecular, prim.kSpecular);
-    gl.uniform1f(uShininess, prim.shininess);
+      // ---- MATERIAL ----
+      gl.uniform1f(uKAmbient, prim.kAmbient);
+      gl.uniform1f(uKDiffuse, prim.kDiffuse);
+      gl.uniform1f(uKSpecular, prim.kSpecular);
+      gl.uniform1f(uShininess, prim.shininess);
 
-    // ---- Buffers ----
-    gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
-    gl.bufferData(gl.ARRAY_BUFFER, prim.positions, gl.STATIC_DRAW);
-    gl.vertexAttribPointer(posLoc, 3, gl.FLOAT, false, 0, 0);
-    gl.enableVertexAttribArray(posLoc);
+      // ---- Buffers ----
+      gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
+      gl.bufferData(gl.ARRAY_BUFFER, prim.positions, gl.STATIC_DRAW);
+      gl.vertexAttribPointer(posLoc, 3, gl.FLOAT, false, 0, 0);
+      gl.enableVertexAttribArray(posLoc);
 
-    // Normals:
-    gl.bindBuffer(gl.ARRAY_BUFFER, nbo);
-    gl.bufferData(gl.ARRAY_BUFFER, prim.normals, gl.STATIC_DRAW);
-    gl.vertexAttribPointer(normalLoc, 3, gl.FLOAT, false, 0, 0);
-    gl.enableVertexAttribArray(normalLoc);
+      // Normals:
+      gl.bindBuffer(gl.ARRAY_BUFFER, nbo);
+      gl.bufferData(gl.ARRAY_BUFFER, prim.normals, gl.STATIC_DRAW);
+      gl.vertexAttribPointer(normalLoc, 3, gl.FLOAT, false, 0, 0);
+      gl.enableVertexAttribArray(normalLoc);
 
-    // Colors:
-    gl.bindBuffer(gl.ARRAY_BUFFER, cbo);
-    gl.bufferData(gl.ARRAY_BUFFER, prim.colors, gl.STATIC_DRAW);
-    gl.vertexAttribPointer(colorLoc, 3, gl.FLOAT, false, 0, 0);
-    gl.enableVertexAttribArray(colorLoc);
+      // Colors:
+      gl.bindBuffer(gl.ARRAY_BUFFER, cbo);
+      gl.bufferData(gl.ARRAY_BUFFER, prim.colors, gl.STATIC_DRAW);
+      gl.vertexAttribPointer(colorLoc, 3, gl.FLOAT, false, 0, 0);
+      gl.enableVertexAttribArray(colorLoc);
 
-    if (prim.hasTexture && prim.texCoords) {
+      if (prim.hasTexture && prim.texCoords) {
         if (!prim.texBuffer) prim.texBuffer = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, prim.texBuffer);
         gl.bufferData(gl.ARRAY_BUFFER, prim.texCoords, gl.STATIC_DRAW);
@@ -322,55 +326,55 @@ function initBuffers() {
         const texLoc = gl.getAttribLocation(program, "aTexCoord");
         gl.enableVertexAttribArray(texLoc);
         gl.vertexAttribPointer(texLoc, 2, gl.FLOAT, false, 0, 0);
-    }
+      }
 
-    // Texture
-    if (prim.hasTexture) {
+      // Texture
+      if (prim.hasTexture) {
         if (!prim.texture)
-            prim.texture = loadTexture(prim.textureUrl);
+          prim.texture = loadTexture(prim.textureUrl);
 
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, prim.texture);
         gl.uniform1i(uUseTexture, 1);
         gl.uniform1i(uTex, 0);
-    } else {
+      } else {
         gl.uniform1i(uUseTexture, 0);
-    }
+      }
 
 
-    // --- Bump ---
-    if (prim.hasBump) {
+      // --- Bump ---
+      if (prim.hasBump) {
         if (!prim.bumpTexture)
-            prim.bumpTexture = loadTexture(prim.textureUrl); // same URL
+          prim.bumpTexture = loadTexture(prim.textureUrl); // same URL
 
         gl.activeTexture(gl.TEXTURE1);
         gl.bindTexture(gl.TEXTURE_2D, prim.bumpTexture);
         gl.uniform1i(uUseBump, 1);
         gl.uniform1i(uBumpTex, 1);
         gl.uniform1f(uBumpStrength, prim.bumpStrength);
-    } else {
+      } else {
         gl.uniform1i(uUseBump, 0);
-    }
+      }
 
-    // Indices:
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ibo);
-    gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, prim.indices, gl.STATIC_DRAW);
+      // Indices:
+      gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ibo);
+      gl.bufferData(gl.ELEMENT_ARRAY_BUFFER, prim.indices, gl.STATIC_DRAW);
 
-    gl.uniformMatrix4fv(uMTM, false, transform);
+      gl.uniformMatrix4fv(uMTM, false, transform);
 
-    gl.drawElements(gl.TRIANGLES, prim.indices.length, gl.UNSIGNED_SHORT, 0);
+      gl.drawElements(gl.TRIANGLES, prim.indices.length, gl.UNSIGNED_SHORT, 0);
 
-    prim.children.forEach(child => drawPrimitive(child, transform));
+      prim.children.forEach(child => drawPrimitive(child, transform));
     }
     let wheelRotation = 0;
     function render() {
-      
+
       // Update kart physics
       if (keys['ArrowUp']) {
         kartSpeed -= acceleration;
         wheelRotation -= 0.1;
       }
-      if (keys['ArrowDown']){
+      if (keys['ArrowDown']) {
         kartSpeed += acceleration;
         wheelRotation += 0.1;
       }
@@ -380,80 +384,80 @@ function initBuffers() {
       if (Math.abs(kartSpeed) > 0.01) {
         if (keys['ArrowLeft']) kartAngle -= turnSpeed * (kartSpeed / maxSpeed);
         if (keys['ArrowRight']) kartAngle += turnSpeed * (kartSpeed / maxSpeed);
-    }
-    wheelRL.rotY = kartSpeed + wheelRotation;
-    wheelRR.rotY = kartSpeed + wheelRotation;
-    wheelFR.rotY = kartSpeed + wheelRotation;
-    wheelFL.rotY = kartSpeed + wheelRotation;
+      }
+      wheelRL.rotY = kartSpeed + wheelRotation;
+      wheelRR.rotY = kartSpeed + wheelRotation;
+      wheelFR.rotY = kartSpeed + wheelRotation;
+      wheelFL.rotY = kartSpeed + wheelRotation;
 
-    if(keys['ArrowLeft'] && !keys['ArrowRight']) {
-      isTurning = -1;
-      axleFR.rotY = axleRotY + (axleTurnCoeff * turnSpeed);
-      axleFL.rotY = axleRotY + (axleTurnCoeff * turnSpeed);
-    }
-    else if(keys['ArrowRight'] && !keys['ArrowLeft']) {
-      isTurning = 1;
-      axleFR.rotY = axleRotY - (axleTurnCoeff * turnSpeed);
-      axleFL.rotY = axleRotY - (axleTurnCoeff * turnSpeed);
-    }
-    else {
-      isTurning = 0;
-      axleFR.rotY = axleRotY;
-      axleFL.rotY = axleRotY;
-    }
-    
-
-    kartX += Math.sin(kartAngle) * kartSpeed;
-    kartZ += Math.cos(kartAngle) * kartSpeed;
-
-    gl.enable(gl.DEPTH_TEST);
-    //gl.clearColor(0, 0, 0, 1);
-    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
-
-    let camZ = -kartZ - 13;
-    let camX = -kartX + 0;
-    let modelViewMatrix = mat4Identity();
+      if (keys['ArrowLeft'] && !keys['ArrowRight']) {
+        isTurning = -1;
+        axleFR.rotY = axleRotY + (axleTurnCoeff * turnSpeed);
+        axleFL.rotY = axleRotY + (axleTurnCoeff * turnSpeed);
+      }
+      else if (keys['ArrowRight'] && !keys['ArrowLeft']) {
+        isTurning = 1;
+        axleFR.rotY = axleRotY - (axleTurnCoeff * turnSpeed);
+        axleFL.rotY = axleRotY - (axleTurnCoeff * turnSpeed);
+      }
+      else {
+        isTurning = 0;
+        axleFR.rotY = axleRotY;
+        axleFL.rotY = axleRotY;
+      }
 
 
-    modelViewMatrix = mat4Translate(modelViewMatrix, [0, -3, -13]);
+      kartX += Math.sin(kartAngle) * kartSpeed;
+      kartZ += Math.cos(kartAngle) * kartSpeed;
+
+      gl.enable(gl.DEPTH_TEST);
+      //gl.clearColor(0, 0, 0, 1);
+      gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+      let camZ = -kartZ - 13;
+      let camX = -kartX + 0;
+      let modelViewMatrix = mat4Identity();
 
 
-    modelViewMatrix = mat4RotateY(modelViewMatrix, -kartAngle);
-
-    modelViewMatrix = mat4Translate(modelViewMatrix, [-kartX, 0, -kartZ]);
+      modelViewMatrix = mat4Translate(modelViewMatrix, [0, -3, -13]);
 
 
+      modelViewMatrix = mat4RotateY(modelViewMatrix, -kartAngle);
+
+      modelViewMatrix = mat4Translate(modelViewMatrix, [-kartX, 0, -kartZ]);
 
 
 
-    let deltaTime = Date.now() - startTime;
-      
-    gl.uniform1f(timeLoc, deltaTime/1000.0);
-    gl.uniformMatrix4fv(uPM, false, proj);
-    gl.uniformMatrix4fv(uMVM, false, modelViewMatrix);
 
-    gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
-    gl.enableVertexAttribArray(posLoc);
-    gl.vertexAttribPointer(posLoc, 3, gl.FLOAT, false, 0, 0);
 
-    gl.bindBuffer(gl.ARRAY_BUFFER, nbo);
-    gl.enableVertexAttribArray(colorLoc);
-    gl.vertexAttribPointer(colorLoc, 3, gl.FLOAT, false, 0, 0);
-    gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ibo);
+      let deltaTime = Date.now() - startTime;
 
-    let kartModel = mat4Identity();
-    kartModel = mat4Translate(kartModel, [kartX, 0, kartZ]);
-    kartModel = mat4RotateY(kartModel, kartAngle);
+      gl.uniform1f(timeLoc, deltaTime / 1000.0);
+      gl.uniformMatrix4fv(uPM, false, proj);
+      gl.uniformMatrix4fv(uMVM, false, modelViewMatrix);
 
-    gl.uniform3fv(uLightPos, [5, 10, 5]);       // simple overhead light
-    gl.uniform3fv(uViewPos, [0, 3, 13]);        // approximated camera position
+      gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
+      gl.enableVertexAttribArray(posLoc);
+      gl.vertexAttribPointer(posLoc, 3, gl.FLOAT, false, 0, 0);
 
-    drawPrimitive(kartBase, kartModel);
+      gl.bindBuffer(gl.ARRAY_BUFFER, nbo);
+      gl.enableVertexAttribArray(colorLoc);
+      gl.vertexAttribPointer(colorLoc, 3, gl.FLOAT, false, 0, 0);
+      gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, ibo);
 
-    for(let i = 0; i < globalObjects.length; i++) {
-      let obj = globalObjects[i];
-      drawPrimitive(obj);
-    }
+      let kartModel = mat4Identity();
+      kartModel = mat4Translate(kartModel, [kartX, 0, kartZ]);
+      kartModel = mat4RotateY(kartModel, kartAngle);
+
+      gl.uniform3fv(uLightPos, [5, 10, 5]);       // simple overhead light
+      gl.uniform3fv(uViewPos, [0, 3, 13]);        // approximated camera position
+
+      drawPrimitive(kartBase, kartModel);
+
+      for (let i = 0; i < globalObjects.length; i++) {
+        let obj = globalObjects[i];
+        drawPrimitive(obj);
+      }
 
     }
 
