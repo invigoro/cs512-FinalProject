@@ -20,8 +20,8 @@
     }
 
     canvas {
-      border: 1px solid #444;
-      background: #757474;
+      border: 1px solid #444444;
+      background: #71afee;
 
     }
   </style>
@@ -567,6 +567,14 @@ if (prim.hasTexture) {
         }
         else {
           acceleration = 0.03;
+        }
+      }
+
+      for(let i = 0; i < ballColliders.length; i++) {
+        let col = ballColliders[i];
+        if(col.checkOverlap(kartBase.collider.points)) {
+          console.log("Hit the ball!");
+
         }
       }
 

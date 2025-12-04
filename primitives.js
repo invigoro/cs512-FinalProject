@@ -103,9 +103,15 @@ class Primitive {
         if (shininess !== undefined) this.shininess = shininess;
     }
 
-    createCollider(addToGlobals = true) {
+    createCollider(addToGlobals = true,ball = false) {
         this.collider = new Collider(this);
-        if(addToGlobals) globalColliders.push(this.collider);
+        if(addToGlobals){
+            if(!ball){
+            globalColliders.push(this.collider);
+            } else{
+                ballColliders.push(this.collider);
+            }
+        }
     }
 }
 

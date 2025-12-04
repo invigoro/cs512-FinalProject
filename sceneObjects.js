@@ -1,5 +1,7 @@
 const globalObjects = [];
 const globalColliders = [];
+const ballColliders = [];
+const obstaclePositions = [];
 
 /* VEHICLE */
 let kartBase = createCube(.1);
@@ -182,6 +184,7 @@ for(let i = 0; i < obstacleCount; i++){
     obs.setRot([0, Math.random() * Math.PI, 0])
     obs.createCollider(true);
     globalObjects.push(obs);
+    obstaclePositions.push([posX, posZ]);
 }
 
 /* GROUND */
@@ -229,9 +232,9 @@ console.log(circuit);
 /* WALLS */
 const walls = [];
 const wallLength = areaSize;
-const wallHeight = 20;
+const wallHeight = 3;
 for(let i = 0; i < 4; i++){
-    let w = createCube(1, [.5, .5, .5], 'textures/noiseTexture_bump.png');
+    let w = createCube(1, [0.459, 0.302, 0.043]);
     w.setSca([1, wallHeight, wallLength]);
     w.setRot([0, (Math.PI/2) * i, 0]);
     let posX = i == 0 ? groundMinX : i == 2 ? groundMaxX : 0;
@@ -239,4 +242,34 @@ for(let i = 0; i < 4; i++){
     w.setPos([posX, (wallHeight / 2 - 1), posZ]);
     w.createCollider(true);
     globalObjects.push(w);
+}
+
+
+/* BALLS */
+const ballcount = 5;
+for(let i = 0; i < ballcount; i++){
+    let posX, posZ;
+    do {
+        posX = obsMinX + (Math.random() * (obsMaxX - obsMinX));
+        posZ = obsMinZ + (Math.random() * (obsMaxZ - obsMinZ));
+    } while (!posCheck(posX, posZ));
+    let obs = createSphere(1, 32,[1,1,1]);
+    obs.setPos([posX, 1, posZ])
+    obs.setMaterial({ambient: 0.8, diffuse: 0.9, specular: 0.2, shininess: 4});
+
+
+    obs.createCollider(true,true);
+    globalObjects.push(obs);
+}
+
+
+function posCheck(x, z, minDist = 6) {
+    for (let [ox, oz] of obstaclePositions) {
+        let dx = Math.abs(x - ox);
+        let dz = Math.abs(z - oz);
+        if (dx < minDist && dz < minDist) {
+            return false; 
+        }
+    }
+    return true;
 }
