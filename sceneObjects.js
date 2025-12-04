@@ -185,6 +185,9 @@ function createScene(scale = 1) {
     globalObjects.length = 0;
     bounceColliders.length = 0;
     ballColliders.length = 0;
+    roadColliders.length = 0;
+    speedColliders.length = 0;
+    mudColliders.length = 0;
     obstaclePositions.length = 0;
     const areaSize = 250;
 
