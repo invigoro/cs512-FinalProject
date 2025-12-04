@@ -193,10 +193,20 @@ function createScene(scale = 1) {
     const groundMaxZ = (areaSize / 2);
     const groundPanelSize = 10;
     const groundBrightnessVariance = .05;
+    const mudProbability = .05;
     for(let i = groundMinX; i <= groundMaxX; i+=groundPanelSize) {
         for(let j = groundMinZ; j <= groundMaxZ; j+=groundPanelSize){
             let gbv = (Math.random() - 0.5) * groundBrightnessVariance;
-            let floor = createPlane(groundPanelSize, groundPanelSize, [0.01,0.35 + gbv,0.01], "textures/noiseTexture_bump.png");
+            const isMud = Math.random() < mudProbability;
+            let floor;
+            if(isMud) {
+                floor = createPlane(groundPanelSize, groundPanelSize, [0.3 + gbv, 0.2 + gbv, 0.01], "textures/noiseTexture_bump.png");
+                floor.createCollider(mudColliders);
+                floor.collider.setScale([groundPanelSize / 2, 1, groundPanelSize / 2]);
+            }
+            else {
+                floor = createPlane(groundPanelSize, groundPanelSize, [0.01,0.35 + gbv,0.01], "textures/noiseTexture_bump.png");
+            }
             floor.setPos([i, -.5, j]);
             floor.setMaterial({
                 diffuse: 0.7,

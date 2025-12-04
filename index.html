@@ -693,9 +693,20 @@ function deleteVAOs(prim) {
         let col = roadColliders[i]; 
         if(col.checkOverlap(kartBase.collider.points)) {
           onRoad = true;
+          onMud = false; //road take priority
           break;
         }
         onRoad = false;
+      }
+      if (!onRoad) { //we can skip this if we already know we on the road
+        for (let i = 0; i < mudColliders.length; i++) {
+          let col = mudColliders[i];
+          if (col.checkOverlap(kartBase.collider.points)) {
+            onMud = true;
+            break;
+          }
+          onMud = false;
+        }
       }
 
       for(let i = 0; i < speedColliders.length; i++) {
