@@ -35,7 +35,9 @@ axleRear.setMaterial({
     specular: 2.0,
     shininess: 128
 });
-let wheelRL = createCylinder(.5,.25, 32, [0.35, 0.35, 0.35],"textures/tire.png");
+
+const wheelColor = [0.15, 0.15, 0.15];
+let wheelRL = createCylinder(.5,.25, 32,wheelColor,"textures/tire_bump.png");
 wheelRL.posY = -1;
 wheelRL.setMaterial({
     diffuse: 1.0,
@@ -43,7 +45,7 @@ wheelRL.setMaterial({
     shininess: 8
 });
 axleRear.appendChild(wheelRL);
-let wheelRR = createCylinder(.5,.25, 32, [0.35, 0.35, 0.35],"textures/tire.png");
+let wheelRR = createCylinder(.5,.25, 32,wheelColor,"textures/tire_bump.png");
 wheelRR.posY = 1;
 wheelRR.setMaterial({
     diffuse: 1.0,
@@ -65,7 +67,7 @@ axleFR.setMaterial({
     specular: 2.0,
     shininess: 128
 });
-let wheelFR = createCylinder(.5,.25, 32, [0.35, 0.35, 0.35],"textures/tire.png");
+let wheelFR = createCylinder(.5,.25, 32, wheelColor,"textures/tire_bump.png");
 wheelFR.posY = .5;
 wheelFR.setMaterial({
     diffuse: 1.0,
@@ -74,7 +76,7 @@ wheelFR.setMaterial({
 });
 axleFR.appendChild(wheelFR);
 
-let axleFL = createCylinder(.1, .8, 8, [0.6, 0.6, 0.6]);
+let axleFL = createCylinder(.1, .8, 8, wheelColor);
 axleFL.rotX = Math.PI / 2;
 axleFL.rotY = Math.PI / 2;
 axleFL.posZ = -1.1;
@@ -84,7 +86,7 @@ axleFL.setMaterial({
     specular: 2.0,
     shininess: 128
 });
-let wheelFL = createCylinder(.5,.25, 32, [0.35, 0.35, 0.35],"textures/tire.png");
+let wheelFL = createCylinder(.5,.25, 32,wheelColor,"textures/tire_bump.png");
 wheelFL.posY = -.5;
 wheelFL.setMaterial({
     diffuse: 1.0,
