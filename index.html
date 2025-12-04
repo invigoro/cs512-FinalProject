@@ -226,6 +226,8 @@ void main() {
     let uUseTexture;
     let uUseBump, uBumpTex, uBumpStrength;
 
+    let loadedImages = {};
+
     // Debug line program
     let lineProgram, linePosLoc, lineUMVM, lineUPM, lineUDebugColor;
     let lineVAO, lineVBO;
@@ -355,9 +357,12 @@ void main() {
     let startTime = Date.now();
 
     function loadTexture(url) {
-      const texture = gl.createTexture();
+      if(loadedImages[url]) { 
+        return loadedImages[url];
+      }
+      let texture = gl.createTexture();
       
-      const image = new Image();
+      let image = new Image();
       image.crossOrigin = "anonymous";
       image.onload = () => {
         gl.bindTexture(gl.TEXTURE_2D, texture);
@@ -368,6 +373,7 @@ void main() {
       };
       image.src = url;
 
+      loadedImages[url] = texture;
       return texture;
     }
 
@@ -553,6 +559,7 @@ function deleteVAOs(prim) {
 }
 
   document.getElementById("restartBtn").addEventListener("click", () => {
+    loadedImages = {};
       kartX = 0; kartZ = 0; kartAngle = 0; kartSpeed = 0;
       currentLevel = 1;
       gameTime = 45;
