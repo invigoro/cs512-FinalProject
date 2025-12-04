@@ -573,7 +573,13 @@ if (prim.hasTexture) {
       for(let i = 0; i < ballColliders.length; i++) {
         let col = ballColliders[i];
         if(col.checkOverlap(kartBase.collider.points)) {
-          console.log("Hit the ball!");
+          ballColliders.splice(i, 1);
+          for(let j = globalObjects.length - 1; j >= 0; j--) {
+            if(globalObjects[j].collider === col) {
+              globalObjects.splice(j, 1);
+              break;
+            }
+          }
 
         }
       }
