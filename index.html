@@ -33,8 +33,13 @@
     </div>
     <div>
       <canvas id="glcanvas" width="1200" height="800"></canvas>
+      <div id="ballCounter"style="font-size: 24px;">
+        Balls: 0/0
+      </div>
     </div>
+
   </div>
+
 
   <!-- Vertex shader -->
   <script id="vertex-shader" type="x-shader/x-vertex">#version 300 es
@@ -207,6 +212,9 @@ void main() {
     // Debug line program
     let lineProgram, linePosLoc, lineUMVM, lineUPM, lineUDebugColor;
     let lineVAO, lineVBO;
+
+    let maxballs = ballColliders.length;
+    let currentballs = maxballs;
 
     let vbo, cbo, nbo, ibo;
 
@@ -474,6 +482,7 @@ if (prim.hasTexture) {
     let modelViewMatrix;
 
     function render() {
+      document.getElementById('ballCounter').textContent = `Balls: ${currentballs}/${maxballs}`;
 
       // Update kart physics
       if (keys['ArrowUp']) {
@@ -577,6 +586,7 @@ if (prim.hasTexture) {
           for(let j = globalObjects.length - 1; j >= 0; j--) {
             if(globalObjects[j].collider === col) {
               globalObjects.splice(j, 1);
+              currentballs--;
               break;
             }
           }
