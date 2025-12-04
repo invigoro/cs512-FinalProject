@@ -315,6 +315,10 @@ void main() {
     let isTurning = 0;
     const axleRotY = axleFR.rotY;
     const axleTurnCoeff = 3.0;
+    let steeringInput = 0.0;     // -1 .. 1 from player
+    let steeringAngle = 0.0;     
+    const maxSteerAngle = 0.6; // rad (~30 deg)
+    const steerResponsiveness = 1; // smoothing speed
 
     
     function getMaxSpeed() {
@@ -590,15 +594,26 @@ function deleteVAOs(prim) {
       kartSpeed *= getFriction();
 
       if (Math.abs(kartSpeed) > 0.01) {
-        if (keys['ArrowLeft']) kartAngle -= turnSpeed * (kartSpeed / getMaxSpeed());
-        if (keys['ArrowRight']) kartAngle += turnSpeed * (kartSpeed / getMaxSpeed());
+
+        let targetInput = 0;
+        if (keys['ArrowLeft']) targetInput = -1;
+        if (keys['ArrowRight']) targetInput = 1;
+        steeringInput += (targetInput - steeringInput) * 0.15;
+        let speedFactor = Math.min(Math.abs(kartSpeed) / (maxSpeedRoad + 1), 1);
+        let steerFalloff = 1.0 - speedFactor * speedFactor;
+
+        let targetSteeringAngle = steeringInput * maxSteerAngle * steerFalloff;
+        steeringAngle += (targetSteeringAngle - steeringAngle) * steerResponsiveness;
+        kartAngle += steeringAngle * -.07;
+        // if (keys['ArrowLeft']) kartAngle -= turnSpeed * (kartSpeed / getMaxSpeed());
+        // if (keys['ArrowRight']) kartAngle += turnSpeed * (kartSpeed / getMaxSpeed());
       }
       wheelRL.rotY = kartSpeed + wheelRotation;
       wheelRR.rotY = kartSpeed + wheelRotation;
       wheelFR.rotY = kartSpeed + wheelRotation;
       wheelFL.rotY = kartSpeed + wheelRotation;
 
-      if (keys['ArrowLeft'] && !keys['ArrowRight']) {
+            if (keys['ArrowLeft'] && !keys['ArrowRight']) {
         isTurning = -1;
         axleFR.rotY = axleRotY + (axleTurnCoeff * turnSpeed);
         axleFL.rotY = axleRotY + (axleTurnCoeff * turnSpeed);
@@ -613,7 +628,6 @@ function deleteVAOs(prim) {
         axleFR.rotY = axleRotY;
         axleFL.rotY = axleRotY;
       }
-
 
       kartX += Math.sin(kartAngle) * kartSpeed;
       kartZ += Math.cos(kartAngle) * kartSpeed;
