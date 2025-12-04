@@ -304,13 +304,13 @@ void main() {
     let freezeCar = false;
     const maxSpeed = 1;
     const maxSpeedMud = 0.6;
-    const maxSpeedRoad = 3;
-    const acceleration = 0.04;
+    const maxSpeedRoad = 1.3;
+    const acceleration = 0.035;
     const accelerationMud = 0.03;
     const accelerationRoad = 0.06;
     const friction = 0.97;
-    const frictionMud = 0.98;
-    const frictionRoad = 0.9;
+    const frictionMud = 0.94;
+    const frictionRoad = 1;
     const turnSpeed = 0.05;
     let isTurning = 0;
     const axleRotY = axleFR.rotY;
@@ -692,9 +692,10 @@ function deleteVAOs(prim) {
       for(let i = 0; i < roadColliders.length; i++) {
         let col = roadColliders[i]; 
         if(col.checkOverlap(kartBase.collider.points)) {
-
+          onRoad = true;
           break;
         }
+        onRoad = false;
       }
 
       for(let i = 0; i < speedColliders.length; i++) {

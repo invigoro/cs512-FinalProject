@@ -219,12 +219,15 @@ function createScene(scale = 1) {
         let coordNext = circuit[i + 1];
         let rsDist = vectorDistance(coordNext, coord);
         let rsAngle = getAngleBetweenPoints(coord, coordNext);
-        let rs = createPlane(rsDist * 1.1, roadWidth, [0.2, 0.2, 0.22], "textures/noiseTexture_bump.png"); 
+        let rsLength = rsDist * 1.15;
+        let rs = createPlane(rsLength, roadWidth, [0.2, 0.2, 0.22], "textures/noiseTexture_bump.png"); 
         rs.setRot([0, -rsAngle, 0]);
         let mid2d = getMidpoint2d(coord, coordNext);
         let midPoint = vectGroundTo3D(mid2d, roadHeight);
         rs.setPos(midPoint);
         globalObjects.push(rs);
+        rs.createCollider(roadColliders);
+        rs.collider.setScale([rsLength/2, 1, roadWidth/2]);
     }
     console.log(circuit);
 
