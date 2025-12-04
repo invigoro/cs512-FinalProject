@@ -374,6 +374,40 @@ kartBase.appendChild(licPlate);
         globalObjects.push(obs);
     }
 
+const cloudCount = 100;
+const skyBuffer = areaSize * 0.5;
+for (let i = 0; i < cloudCount; i++) {
+
+    let cx = (Math.random() * (areaSize + skyBuffer*2)) - (areaSize/2 + skyBuffer);
+    let cz = (Math.random() * (areaSize + skyBuffer*2)) - (areaSize/2 + skyBuffer);
+    let cy = 20 + Math.random() * 15;
+
+    spawnCloud(cx, cy, cz, 15);
+}
+
+function spawnCloud(centerX, centerY, centerZ, count = 20) {
+
+    let cloud = createSphere(1, 10, [1,1,1]);
+    cloud.setPos([centerX, centerY, centerZ]);
+    globalObjects.push(cloud);
+
+    for (let i = 0; i < count; i++) {
+        let c = createSphere(1, 10, [1,1,1]);
+
+        // Spread for fluffy shape
+        let offsetX = Math.random() * 5 - 3;
+        let offsetY = Math.random() * 1;
+        let offsetZ = Math.random() * 5 - 3;
+
+        c.setPos([
+            centerX + offsetX,
+            centerY + offsetY,
+            centerZ + offsetZ
+        ]);
+
+        globalObjects.push(c);
+    }
+}
 
     function posCheck(x, z, minDist = 6) {
         for (let [ox, oz] of obstaclePositions) {
