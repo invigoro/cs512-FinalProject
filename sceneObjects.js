@@ -14,9 +14,8 @@ kartBase.collider.setScale([1.2,0.5,1.45]);
 let carColor = [0.9, .02, 0.03];
 let carMaterial = 
 {
-    ambient: 0.4,
-    diffuse: 0.6,
-    specular: 2.0,
+    diffuse: .1,
+    specular: 3.0,
     shininess: 128
 };
 let chassis = createCube(2, [0.9, .02, 0.03]);

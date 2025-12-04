@@ -97,8 +97,8 @@ in vec2 vTexCoord;
 
 out vec4 fragColor;
 
-// Light data
-uniform vec3 uLightPos;
+// Directional light
+uniform vec3 uLightDir;  
 uniform vec3 uLightColor;
 
 // Material data
@@ -113,29 +113,28 @@ uniform bool uUseBump;
 uniform float uBumpStrength;
 uniform bool uUseTexture;
 
-
 void main() {
     vec3 N = normalize(vNormal);
     if (uUseBump) {
-      float h  = texture(uBumpTex, vTexCoord).r;
-      float hu = texture(uBumpTex, vTexCoord + vec2(0.01, 0.0)).r;
-      float hv = texture(uBumpTex, vTexCoord + vec2(0.0, 0.01)).r;
+        float h  = texture(uBumpTex, vTexCoord).r;
+        float hu = texture(uBumpTex, vTexCoord + vec2(0.01, 0.0)).r;
+        float hv = texture(uBumpTex, vTexCoord + vec2(0.0, 0.01)).r;
 
-      vec3 grad = vec3((h - hu) * uBumpStrength,
-                      (h - hv) * uBumpStrength,
-                      1.0);
+        vec3 grad = vec3((h - hu) * uBumpStrength,
+                         (h - hv) * uBumpStrength,
+                          1.0);
 
-      N = normalize(N + grad);
+        N = normalize(N + grad);
     }
-    vec3 L = normalize(uLightPos - vPosition);
+
+    // Directional light same L for entire scene
+    vec3 L = normalize(-uLightDir); 
     vec3 V = normalize(-vPosition);
-    
-    // Blinn-Phong: use halfway vector instead of reflection
-    vec3 H = normalize(L + V);
+    vec3 H = normalize(L);
 
     float diff = max(dot(N, L), 0.0);
-    float spec = 0.0;
 
+    float spec = 0.0;
     if (diff > 0.0) {
         spec = pow(max(dot(N, H), 0.0), uShininess);
     }
@@ -149,10 +148,11 @@ void main() {
         texColor = texture(uTex, vTexCoord).rgb;
     }
 
-    vec3 result = (ambient + diffuse) * texColor + specular;
+    vec3 result = 1.6 * (ambient + diffuse) * texColor + specular;
     fragColor = vec4(result, 1.0);
 }
 </script>
+
 
   <!-- Debug Line Vertex Shader -->
   <script id="line-vertex-shader" type="x-shader/x-vertex">#version 300 es
@@ -221,7 +221,7 @@ void main() {
 
     let program, posLoc, colorLoc, normalLoc, texCoordLoc;
     let uMVM, uPM, uMTM, uNormalMatrix;
-    let uLightPos, uViewPos, uLightColor;
+    let uLightDir;
     let uKAmbient, uKDiffuse, uKSpecular, uKShininess;
     let uUseTexture;
     let uUseBump, uBumpTex, uBumpStrength;
@@ -263,7 +263,7 @@ void main() {
         texCoordLoc = gl.getAttribLocation(program, "aTexCoord");
 
         uNormalMatrix = gl.getUniformLocation(program, "uNormalMatrix");
-        uLightPos = gl.getUniformLocation(program, "uLightPos");
+        uLightDir = gl.getUniformLocation(program, "uLightDir")
         uViewPos = gl.getUniformLocation(program, "uViewPos");
         uLightColor = gl.getUniformLocation(program, "uLightColor");
 
@@ -650,9 +650,12 @@ function deleteVAOs(prim) {
       kartModel = mat4Translate(kartModel, [kartX, 0, kartZ]);
       kartModel = mat4RotateY(kartModel, kartAngle);
 
-      gl.uniform3fv(uLightPos, [100, 200, 100]);
-      gl.uniform3fv(uViewPos, [0, 3, 13]);
-      gl.uniform3fv(uLightColor, [1.0, 0.95, 0.9]);
+// Sun direction (e.g. shining downward and a bit from the side)
+let sunDir = [0.4, -1.0, 0.3]; 
+const sunIntensity = 4.0;
+const sunColor = [1 * sunIntensity, .95 * sunIntensity, .9 * sunIntensity];
+gl.uniform3fv(uLightDir, sunDir);
+gl.uniform3fv(uLightColor, sunColor);
 
       drawPrimitive(kartBase, kartModel);
 
