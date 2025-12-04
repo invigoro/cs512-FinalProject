@@ -155,7 +155,7 @@ void main() {
 
 
   <!-- Debug Line Vertex Shader -->
-  <script id="line-vertex-shader" type="x-shader/x-vertex">#version 300 es
+  <!-- <script id="line-vertex-shader" type="x-shader/x-vertex">#version 300 es
 precision mediump float;
 
 in vec3 aPosition;
@@ -166,10 +166,10 @@ uniform mat4 uProjectionMatrix;
 void main() {
     gl_Position = uProjectionMatrix * uModelViewMatrix * vec4(aPosition, 1.0);
 }
-</script>
+</script> -->
 
   <!-- Debug Line Fragment Shader -->
-  <script id="line-fragment-shader" type="x-shader/x-fragment">#version 300 es
+  <!-- <script id="line-fragment-shader" type="x-shader/x-fragment">#version 300 es
 precision mediump float;
 
 uniform vec3 uDebugColor;
@@ -178,7 +178,7 @@ out vec4 fragColor;
 void main() {
     fragColor = vec4(uDebugColor, 1.0);
 }
-</script>
+</script> -->
 
   <script src="utility.js"></script>
   <script src="collider.js"></script>
@@ -280,18 +280,18 @@ void main() {
         uBumpStrength = gl.getUniformLocation(program, "uBumpStrength");
         uTex = gl.getUniformLocation(program, "uTex");
 
-        // Initialize line program
-        lineProgram = createProgram(gl, 
-          document.getElementById("line-vertex-shader").textContent,
-          document.getElementById("line-fragment-shader").textContent);
-        linePosLoc = gl.getAttribLocation(lineProgram, "aPosition");
-        lineUMVM = gl.getUniformLocation(lineProgram, "uModelViewMatrix");
-        lineUPM = gl.getUniformLocation(lineProgram, "uProjectionMatrix");
-        lineUDebugColor = gl.getUniformLocation(lineProgram, "uDebugColor");
+        // // Initialize line program
+        // lineProgram = createProgram(gl, 
+        //   document.getElementById("line-vertex-shader").textContent,
+        //   document.getElementById("line-fragment-shader").textContent);
+        // linePosLoc = gl.getAttribLocation(lineProgram, "aPosition");
+        // lineUMVM = gl.getUniformLocation(lineProgram, "uModelViewMatrix");
+        // lineUPM = gl.getUniformLocation(lineProgram, "uProjectionMatrix");
+        // lineUDebugColor = gl.getUniformLocation(lineProgram, "uDebugColor");
 
-        // Create line VAO
-        lineVAO = gl.createVertexArray();
-        lineVBO = gl.createBuffer();
+        // // Create line VAO
+        // lineVAO = gl.createVertexArray();
+        // lineVBO = gl.createBuffer();
 
       } catch (e) { console.error(e); }
     }
@@ -790,12 +790,12 @@ gl.uniform3fv(uLightColor, sunColor);
       }
 
       // Draw all collider debug visualizations
-      drawColliderDebug(kartBase.collider, [0, 0, 1]); // Blue for kart
-      [bounceColliders, ballColliders, speedColliders, mudColliders, roadColliders].forEach(element => {
-        for(let i = 0; i < element.length; i++) {
-          drawColliderDebug(element[i], [0, 1, 0]); // Green for obstacles
-        }
-      });
+      // drawColliderDebug(kartBase.collider, [0, 0, 1]); // Blue for kart
+      // [bounceColliders, ballColliders, speedColliders, mudColliders, roadColliders].forEach(element => {
+      //   for(let i = 0; i < element.length; i++) {
+      //     drawColliderDebug(element[i], [0, 1, 0]); // Green for obstacles
+      //   }
+      // });
 
       if(currentballs == 0){
         kartX = 0; kartZ = 0; kartAngle = 0; kartSpeed = 0;
