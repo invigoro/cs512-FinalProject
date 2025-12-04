@@ -5,9 +5,27 @@ const speedColliders = [];
 const mudColliders = [];
 const roadColliders = [];
 const obstaclePositions = [];
+let loadedImages = {};
 
 /* VEHICLE */
-let kartBase = createCube(.1);
+let kartBase;
+let axleRotY;
+let wheelRL, wheelRR, wheelFR, wheelFL;
+let axleRear, axleFR, axleFL;
+
+function createScene(scale = 1) {
+    loadedImages = {};
+    globalObjects.length = 0;
+    bounceColliders.length = 0;
+    ballColliders.length = 0;
+    roadColliders.length = 0;
+    speedColliders.length = 0;
+    mudColliders.length = 0;
+    obstaclePositions.length = 0;
+    const areaSize = 250;
+    kartBase = null;
+
+    kartBase = createCube(.1);
 kartBase.createCollider();
 kartBase.collider.setScale([1.2,0.5,1.45]); 
 
@@ -32,7 +50,7 @@ kartBase.appendChild(bumpers);
 
 
 //Rear axle
-let axleRear = createCylinder(.1, 2, 8, [0.6, 0.6, 0.6]);
+axleRear = createCylinder(.1, 2, 8, [0.6, 0.6, 0.6]);
 axleRear.rotX = Math.PI / 2;
 axleRear.rotY = Math.PI / 2;
 axleRear.posZ = 1.3;
@@ -43,7 +61,7 @@ axleRear.setMaterial({
 });
 
 const wheelColor = [0.15, 0.15, 0.15];
-let wheelRL = createCylinder(.5,.25, 32,wheelColor,"textures/tire_bump.png");
+wheelRL = createCylinder(.5,.25, 32,wheelColor,"textures/tire_bump.png");
 wheelRL.posY = -1;
 wheelRL.setMaterial({
     diffuse: 1.0,
@@ -51,7 +69,7 @@ wheelRL.setMaterial({
     shininess: 8
 });
 axleRear.appendChild(wheelRL);
-let wheelRR = createCylinder(.5,.25, 32,wheelColor,"textures/tire_bump.png");
+wheelRR = createCylinder(.5,.25, 32,wheelColor,"textures/tire_bump.png");
 wheelRR.posY = 1;
 wheelRR.setMaterial({
     diffuse: 1.0,
@@ -62,8 +80,21 @@ axleRear.appendChild(wheelRR);
 
 kartBase.appendChild(axleRear);
 
+function makeParticle() {
+    let s = createSphere(0.1, [1,0.8,0.2]);
+    s.setPos([0,1,0]);
+    return s;
+}
+
+axleRear.appendParticles(new ParticleGenerator(makeParticle, {
+    pCount:  10,
+    pLifespan: 2,
+    pVelocity: 4,
+    randomDir: 1
+}))
+
 //Front axles
-let axleFR = createCylinder(.1, .8, 8, [0.6, 0.6, 0.6]);
+axleFR = createCylinder(.1, .8, 8, [0.6, 0.6, 0.6]);
 axleFR.rotX = Math.PI / 2;
 axleFR.rotY = Math.PI / 2;
 axleFR.posZ = -1.1;
@@ -73,7 +104,7 @@ axleFR.setMaterial({
     specular: 2.0,
     shininess: 128
 });
-let wheelFR = createCylinder(.5,.25, 32, wheelColor,"textures/tire_bump.png");
+wheelFR = createCylinder(.5,.25, 32, wheelColor,"textures/tire_bump.png");
 wheelFR.posY = .5;
 wheelFR.setMaterial({
     diffuse: 1.0,
@@ -82,7 +113,7 @@ wheelFR.setMaterial({
 });
 axleFR.appendChild(wheelFR);
 
-let axleFL = createCylinder(.1, .8, 8, wheelColor);
+axleFL = createCylinder(.1, .8, 8, wheelColor);
 axleFL.rotX = Math.PI / 2;
 axleFL.rotY = Math.PI / 2;
 axleFL.posZ = -1.1;
@@ -92,7 +123,7 @@ axleFL.setMaterial({
     specular: 2.0,
     shininess: 128
 });
-let wheelFL = createCylinder(.5,.25, 32,wheelColor,"textures/tire_bump.png");
+wheelFL = createCylinder(.5,.25, 32,wheelColor,"textures/tire_bump.png");
 wheelFL.posY = -.5;
 wheelFL.setMaterial({
     diffuse: 1.0,
@@ -103,6 +134,7 @@ axleFL.appendChild(wheelFL);
 
 kartBase.appendChild(axleFR);
 kartBase.appendChild(axleFL);
+axleRotY = axleFR.rotY;
 
 //Spoiler
 let spoilerColor = [0.1, 0.1, 0.1];
@@ -181,16 +213,6 @@ licPlate.setPos([0, -.05, 1.47]);
 licPlate.setSca([4, 2, 1]);
 kartBase.appendChild(licPlate);
 
-function createScene(scale = 1) {
-    globalObjects.length = 0;
-    bounceColliders.length = 0;
-    ballColliders.length = 0;
-    roadColliders.length = 0;
-    speedColliders.length = 0;
-    mudColliders.length = 0;
-    obstaclePositions.length = 0;
-    const areaSize = 250;
-
     //random obstacles
     const obstacleCount = Math.floor(30 + (scale - 1) * 10);
     const obsMinX = -(areaSize / 2);
@@ -268,7 +290,6 @@ function createScene(scale = 1) {
         rs.createCollider(roadColliders);
         rs.collider.setScale([rsLength/2, 1, roadWidth/2]);
     }
-    console.log(circuit);
 
     /* WALLS */
     const walls = [];

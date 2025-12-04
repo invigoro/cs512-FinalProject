@@ -40,6 +40,7 @@ class Primitive {
         this.rotZ = 0;
 
         this.children = [];
+        this.particles = [];
 
         this.kAmbient  = 0.5;
         this.kDiffuse  = 0.7;
@@ -53,6 +54,9 @@ class Primitive {
         this.posY = y;
         this.posZ = z;
     }
+    getPos() {
+        return [this.posX, this.posY, this.posZ];
+    }
 
     setSca([x, y, z]) {
         this.scaX = x;
@@ -64,6 +68,9 @@ class Primitive {
         this.rotX = x;
         this.rotY = y;
         this.rotZ = z;
+    }
+    getRot() {
+        return [this.rotX, this.rotY, this.rotZ];
     }
 
     getRotationMatrix() {
@@ -97,6 +104,9 @@ class Primitive {
 
     appendChild(child) {
         this.children.push(child);
+    }
+    appendParticles(particles) {
+        this.particles.push(particles);
     }
     setMaterial({ ambient, diffuse, specular, shininess }) {
         if (ambient   !== undefined) this.kAmbient  = ambient;

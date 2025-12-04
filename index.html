@@ -182,6 +182,7 @@ void main() {
 
   <script src="utility.js"></script>
   <script src="collider.js"></script>
+  <script src="particles.js"></script>
   <script src="primitives.js"></script>
   <script src="transformation.js"></script>
   <script src="sceneObjects.js"></script>
@@ -226,7 +227,6 @@ void main() {
     let uUseTexture;
     let uUseBump, uBumpTex, uBumpStrength;
 
-    let loadedImages = {};
 
     // Debug line program
     let lineProgram, linePosLoc, lineUMVM, lineUPM, lineUDebugColor;
@@ -315,7 +315,6 @@ void main() {
     const frictionRoad = .97;
     const turnSpeed = 0.05;
     let isTurning = 0;
-    const axleRotY = axleFR.rotY;
     const axleTurnCoeff = 3.0;
     let steeringInput = 0.0;     // -1 .. 1 from player
     let steeringAngle = 0.0;     
@@ -436,6 +435,12 @@ function drawPrimitive(prim, transform = null) {
   gl.drawElements(gl.TRIANGLES, prim.indices.length, gl.UNSIGNED_SHORT, 0);
 
   prim.children.forEach(child => drawPrimitive(child, transform));
+  prim.particles.forEach(part => {
+    part.update(renderTime);
+    part.particles.forEach(p => {
+      drawPrimitive(p.obj, transform);
+    })
+  })
 }
 
     // Draw collider debug visualization
@@ -541,6 +546,11 @@ if (prim.hasTexture) {
   }
   
   prim.children.forEach(child => initAllVAOs(child));
+  prim.particles.forEach(part => {
+    part.particles.forEach(child => {
+      initAllVAOs(child.obj);
+    })
+  })
 }
 function deleteVAOs(prim) {
   if (prim.vao) {
@@ -556,17 +566,23 @@ function deleteVAOs(prim) {
     prim.bumpTexture = null;
   }
   prim.children.forEach(child => deleteVAOs(child));
+  prim.particles.forEach(part => {
+    part.particles.forEach(child => {
+      deleteVAOs(child.obj);
+    })
+  })
 }
 
   document.getElementById("restartBtn").addEventListener("click", () => {
-    loadedImages = {};
       kartX = 0; kartZ = 0; kartAngle = 0; kartSpeed = 0;
       currentLevel = 1;
       gameTime = 45;
       freezeCar = false;
 
       globalObjects.forEach(obj => deleteVAOs(obj));
+      deleteVAOs(kartBase);
       createScene(currentLevel);
+      initAllVAOs(kartBase);
       globalObjects.forEach(obj => initAllVAOs(obj));
       maxballs = ballColliders.length;
       currentballs = maxballs;
@@ -588,8 +604,12 @@ function deleteVAOs(prim) {
 }
 
     let modelViewMatrix;
+    let lastFrame = Date.now();
+    let renderTime = 0;
 
     function render() {
+      renderTime = Date.now() - lastFrame;
+      lastFrame = Date.now();
       document.getElementById('ballCounter').textContent = `Balls: ${currentballs}/${maxballs}`;
       updateTimer();
 
@@ -754,7 +774,9 @@ gl.uniform3fv(uLightColor, sunColor);
         kartX = 0; kartZ = 0; kartAngle = 0; kartSpeed = 0;
         currentLevel++;
         globalObjects.forEach(obj => deleteVAOs(obj));
+        deleteVAOs(kartBase);
         createScene(currentLevel);
+        initAllVAOs(kartBase);
         globalObjects.forEach(obj => initAllVAOs(obj));
         maxballs = ballColliders.length;
         currentballs = maxballs;
