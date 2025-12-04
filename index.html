@@ -24,25 +24,36 @@
       background: #71afee;
 
     }
+    button {
+      font-size: 24px;
+
+
+    }
   </style>
 </head>
 
 <body>
-  <div style="display: flex; justify-content: center; gap: 10px; align-items: flex-start;">
-    <div style="display: flex; justify-content: center; flex-direction: column; gap: 10px;">
-    </div>
-    <div>
-      <canvas id="glcanvas" width="1200" height="800"></canvas>
-      <div id="levelCounter"style="font-size: 24px;">
-        Level: 1
+<div style="display: flex; justify-content: center; gap: 10px; align-items: flex-start;">
+  <div>
+    <canvas id="glcanvas" width="1200" height="800"></canvas>
+    <div style="display: flex; justify-content: space-between; width: 1200px; font-size: 24px;">
+      <div>
+        <div id="levelCounter">Level: 1</div>
+        <div id="ballCounter">Balls: 0/0</div>
       </div>
+      <div>
+        <div id="Timer">Time: 45s<br> </div>
+        <button id="restartBtn">Restart</button>
+      </div>
+      
 
-      <div id="ballCounter"style="font-size: 24px;">
-        Balls: 0/0
-      </div>
+
     </div>
 
   </div>
+
+</div>
+
 
 
   <!-- Vertex shader -->
@@ -223,6 +234,8 @@ void main() {
     let currentballs = maxballs;
 
     let vbo, cbo, nbo, ibo;
+    let gameTime = 45;
+    let lastTime = Date.now();
 
     // Buffers
     function initBuffers() {
@@ -500,10 +513,39 @@ function deleteVAOs(prim) {
   prim.children.forEach(child => deleteVAOs(child));
 }
 
+  document.getElementById("restartBtn").addEventListener("click", () => {
+      kartX = 0; kartZ = 0; kartAngle = 0; kartSpeed = 0;
+      currentLevel = 1;
+      gameTime = 45;
+      maxSpeed = 1;
+
+      globalObjects.forEach(obj => deleteVAOs(obj));
+      createScene(currentLevel);
+      globalObjects.forEach(obj => initAllVAOs(obj));
+      maxballs = ballColliders.length;
+      currentballs = maxballs;
+      document.getElementById('levelCounter').textContent = `Level: ${currentLevel}`;
+  });
+
+  function updateTimer() {
+  const now = Date.now();
+  const elapsed = (now - lastTime) / 1000;
+  
+  if (elapsed >= 1&& gameTime > 0) {
+    gameTime--;
+    lastTime = now;
+    document.getElementById('Timer').textContent = `Time: ${gameTime}s`;
+    if (gameTime <= 0) {
+      maxSpeed = 0;
+    }
+  }
+}
+
     let modelViewMatrix;
 
     function render() {
       document.getElementById('ballCounter').textContent = `Balls: ${currentballs}/${maxballs}`;
+      updateTimer();
 
       // Update kart physics
       if (keys['ArrowUp']) {
@@ -608,6 +650,8 @@ function deleteVAOs(prim) {
             if(globalObjects[j].collider === col) {
               globalObjects.splice(j, 1);
               currentballs--;
+              gameTime += 3;
+              document.getElementById('Timer').textContent = `Time: ${gameTime}s`;
               break;
             }
           }
@@ -629,7 +673,7 @@ function deleteVAOs(prim) {
         maxballs = ballColliders.length;
         currentballs = maxballs;
         document.getElementById('levelCounter').textContent = `Level: ${currentLevel}`;
-
+        gameTime+= 45;
       }
     }
 
