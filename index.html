@@ -372,7 +372,11 @@ void main() {
     }
 
 function drawPrimitive(prim, transform = null) {
-  let T = mat4Translate(mat4Identity(), [prim.posX, prim.posY, prim.posZ]);
+  let yPos = prim.posY;
+  if(prim.yAnimDist > 0 && prim.yAnimSpeed > 0) {
+    yPos += Math.sin((Date.now() - startTime) / prim.yAnimSpeed) * prim.yAnimDist; 
+  }
+  let T = mat4Translate(mat4Identity(), [prim.posX, yPos, prim.posZ]);
   let R = prim.getRotationMatrix();
   let S = mat4Scale(mat4Identity(), [prim.scaX, prim.scaY, prim.scaZ]);
   let localTransform = multiplyMat4(multiplyMat4(T, R), S);
@@ -393,6 +397,7 @@ function drawPrimitive(prim, transform = null) {
   let normalMatrix = mat3FromMat4(transform);
   normalMatrix = mat3InvertTranspose(normalMatrix);
   gl.uniformMatrix3fv(uNormalMatrix, false, normalMatrix);
+
 
   gl.uniform1f(uKAmbient, prim.kAmbient);
   gl.uniform1f(uKDiffuse, prim.kDiffuse);

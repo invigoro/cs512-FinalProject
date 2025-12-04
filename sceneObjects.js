@@ -171,6 +171,7 @@ function createScene(scale = 1) {
     const obsMinZ = -(areaSize / 2);
     const obsMaxZ = (areaSize / 2);
     const obstacleSize = 4;
+    const clearSpawnArea = 15;
 
     for(let i = 0; i < obstacleCount; i++){
         let obs = createCube(1, null,"textures/crate.jpg");
@@ -178,7 +179,7 @@ function createScene(scale = 1) {
         do {
             posX = obsMinX + (Math.random() * (obsMaxX- obsMinX));
             posZ = obsMinX + (Math.random() * (obsMaxZ - obsMinZ));
-        } while ((posX >= -4 && posX <= 4 && posZ >= -4 && posZ <= 4));
+        } while ((posX >= -clearSpawnArea && posX <= clearSpawnArea && posZ >= -clearSpawnArea && posZ <= clearSpawnArea));
         obs.setPos([posX, 1, posZ])
         obs.setSca([obstacleSize, obstacleSize, obstacleSize]);
         obs.setRot([0, Math.random() * Math.PI, 0])
@@ -267,13 +268,15 @@ function createScene(scale = 1) {
             posX = obsMinX + ballPadding + (Math.random() * (obsMaxX - obsMinX - ballPadding));
             posZ = obsMinZ + ballPadding + (Math.random() * (obsMaxZ - obsMinZ - ballPadding));
         } while (!posCheck(posX, posZ));
-        let obs = createSphere(1, 32,[1,1,1]);
-        obs.setPos([posX, 1, posZ])
+        let obs = createSphere(1, 32,[.99, .5,.99]);
+        obs.setPos([posX, 1.5, posZ])
         obs.setMaterial({ambient: 0.8, diffuse: 0.9, specular: 0.2, shininess: 4});
+        obs.yAnimDist = 1;
+        obs.yAnimSpeed = 1000;
 
 
         obs.createCollider(ballColliders);
-        obs.collider.setScale([1.1,1.1,1.1])
+        obs.collider.setScale([1.1,2.4,1.1])
         globalObjects.push(obs);
     }
 

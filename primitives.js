@@ -8,6 +8,8 @@ class Primitive {
         this.collider = null;
     this.textureUrl = textureUrl;
     this.texCoords = texCoords ? new Float32Array(texCoords) : null;
+    this.yAnimDist = 0;
+    this.yAnimSpeed = 1;
 
     const lower = (textureUrl || "").toLowerCase();
     this.isBumpMap = lower.includes("bump");
