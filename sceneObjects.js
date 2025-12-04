@@ -153,123 +153,120 @@ rearWindow.setRot([.9, 0, 0]);
 kartBase.appendChild(mainCabin);
 kartBase.appendChild(rearWindow);
 
-/* OBSTACLES */
-// let cube1 = createCube(4);
-// cube1.setPos([-1, 1, -10]);
-// cube1.setRot([0, 1, 0]);
-// globalObjects.push(cube1);
+function createScene(scale = 1) {
+    globalObjects.length = 0;
+    globalColliders.length = 0;
+    ballColliders.length = 0;
+    obstaclePositions.length = 0;
+    const areaSize = 250;
 
-// let cube2 = createCube(2);
-// cube2.setPos([0, 1, 0]);
-// cube2.setSca([1, 5, 1]);
-// cube2.setRot([1, 0, 0]);
-// cube1.appendChild(cube2);
+    //random obstacles
+    const obstacleCount = Math.floor(30 + (scale - 1) * 10);
+    const obsMinX = -(areaSize / 2);
+    const obsMaxX = (areaSize / 2);
+    const obsMinZ = -(areaSize / 2);
+    const obsMaxZ = (areaSize / 2);
+    const obstacleSize = 4;
 
-const areaSize = 250;
-
-//random obstacles
-const obstacleCount = 50;
-const obsMinX = -(areaSize / 2);
-const obsMaxX = (areaSize / 2);
-const obsMinZ = -(areaSize / 2);
-const obsMaxZ = (areaSize / 2);
-const obstacleSize = 4;
-
-for(let i = 0; i < obstacleCount; i++){
-    let obs = createCube(1, null,"textures/crate.jpg");
-    let posX = obsMinX + (Math.random() * (obsMaxX- obsMinX));
-    let posZ = obsMinX + (Math.random() * (obsMaxZ - obsMinZ));
-    obs.setPos([posX, 1, posZ])
-    obs.setSca([obstacleSize, obstacleSize, obstacleSize]);
-    obs.setRot([0, Math.random() * Math.PI, 0])
-    obs.createCollider(true);
-    globalObjects.push(obs);
-    obstaclePositions.push([posX, posZ]);
-}
-
-/* GROUND */
-const groundMinX = -(areaSize / 2);
-const groundMaxX = (areaSize / 2);
-const groundMinZ = -(areaSize / 2);
-const groundMaxZ = (areaSize / 2);
-const groundPanelSize = 10;
-const groundBrightnessVariance = .05;
-for(let i = groundMinX; i <= groundMaxX; i+=groundPanelSize) {
-    for(let j = groundMinZ; j <= groundMaxZ; j+=groundPanelSize){
-        let gbv = (Math.random() - 0.5) * groundBrightnessVariance;
-        let floor = createPlane(groundPanelSize, groundPanelSize, [0.01,0.35 + gbv,0.01], "textures/noiseTexture_bump.png");
-        floor.setPos([i, -.5, j]);
-        floor.setMaterial({
-            diffuse: 0.7,
-            specular: 0.2,
-            shininess: 4
-        });
-        globalObjects.push(floor);
+    for(let i = 0; i < obstacleCount; i++){
+        let obs = createCube(1, null,"textures/crate.jpg");
+        let posX, posZ;
+        do {
+            posX = obsMinX + (Math.random() * (obsMaxX- obsMinX));
+            posZ = obsMinX + (Math.random() * (obsMaxZ - obsMinZ));
+        } while ((posX >= -4 && posX <= 4 && posZ >= -4 && posZ <= 4));
+        obs.setPos([posX, 1, posZ])
+        obs.setSca([obstacleSize, obstacleSize, obstacleSize]);
+        obs.setRot([0, Math.random() * Math.PI, 0])
+        obs.createCollider(true);
+        globalObjects.push(obs);
+        obstaclePositions.push([posX, posZ]);
     }
-}
 
-/* ROAD */
-const roadSegments = 40;
-const roadWidth = 15;
-const roadHeight = -.49;
-const circuit = generateRandomCircuit(areaSize, .35, roadSegments);
-const startPosition = circuit[0];
-const startRotation = getAngleBetweenPoints(circuit[0], circuit[1]);
-for(let i = 0; i < circuit.length - 1; i++){
-    let coord = circuit[i];
-    let coordNext = circuit[i + 1];
-    let rsDist = vectorDistance(coordNext, coord);
-    let rsAngle = getAngleBetweenPoints(coord, coordNext);
-    let rs = createPlane(rsDist * 1.1, roadWidth, [0.2, 0.2, 0.22], "textures/noiseTexture_bump.png"); 
-    rs.setRot([0, -rsAngle, 0]);
-    let mid2d = getMidpoint2d(coord, coordNext);
-    let midPoint = vectGroundTo3D(mid2d, roadHeight);
-    rs.setPos(midPoint);
-    globalObjects.push(rs);
-}
-console.log(circuit);
-
-/* WALLS */
-const walls = [];
-const wallLength = areaSize;
-const wallHeight = 3;
-for(let i = 0; i < 4; i++){
-    let w = createCube(1, [0.459, 0.302, 0.043]);
-    w.setSca([1, wallHeight, wallLength]);
-    w.setRot([0, (Math.PI/2) * i, 0]);
-    let posX = i == 0 ? groundMinX : i == 2 ? groundMaxX : 0;
-    let posZ = i == 1 ? groundMinZ : i == 3 ? groundMaxZ : 0;
-    w.setPos([posX, (wallHeight / 2 - 1), posZ]);
-    w.createCollider(true);
-    globalObjects.push(w);
-}
-
-
-/* BALLS */
-const ballcount = 5;
-for(let i = 0; i < ballcount; i++){
-    let posX, posZ;
-    do {
-        posX = obsMinX + (Math.random() * (obsMaxX - obsMinX));
-        posZ = obsMinZ + (Math.random() * (obsMaxZ - obsMinZ));
-    } while (!posCheck(posX, posZ));
-    let obs = createSphere(1, 32,[1,1,1]);
-    obs.setPos([posX, 1, posZ])
-    obs.setMaterial({ambient: 0.8, diffuse: 0.9, specular: 0.2, shininess: 4});
-
-
-    obs.createCollider(true,true);
-    globalObjects.push(obs);
-}
-
-
-function posCheck(x, z, minDist = 6) {
-    for (let [ox, oz] of obstaclePositions) {
-        let dx = Math.abs(x - ox);
-        let dz = Math.abs(z - oz);
-        if (dx < minDist && dz < minDist) {
-            return false; 
+    /* GROUND */
+    const groundMinX = -(areaSize / 2);
+    const groundMaxX = (areaSize / 2);
+    const groundMinZ = -(areaSize / 2);
+    const groundMaxZ = (areaSize / 2);
+    const groundPanelSize = 10;
+    const groundBrightnessVariance = .05;
+    for(let i = groundMinX; i <= groundMaxX; i+=groundPanelSize) {
+        for(let j = groundMinZ; j <= groundMaxZ; j+=groundPanelSize){
+            let gbv = (Math.random() - 0.5) * groundBrightnessVariance;
+            let floor = createPlane(groundPanelSize, groundPanelSize, [0.01,0.35 + gbv,0.01], "textures/noiseTexture_bump.png");
+            floor.setPos([i, -.5, j]);
+            floor.setMaterial({
+                diffuse: 0.7,
+                specular: 0.2,
+                shininess: 4
+            });
+            globalObjects.push(floor);
         }
     }
-    return true;
+
+    /* ROAD */
+    const roadSegments = 40;
+    const roadWidth = 15;
+    const roadHeight = -.49;
+    const circuit = generateRandomCircuit(areaSize, .35, roadSegments);
+    const startPosition = circuit[0];
+    const startRotation = getAngleBetweenPoints(circuit[0], circuit[1]);
+    for(let i = 0; i < circuit.length - 1; i++){
+        let coord = circuit[i];
+        let coordNext = circuit[i + 1];
+        let rsDist = vectorDistance(coordNext, coord);
+        let rsAngle = getAngleBetweenPoints(coord, coordNext);
+        let rs = createPlane(rsDist * 1.1, roadWidth, [0.2, 0.2, 0.22], "textures/noiseTexture_bump.png"); 
+        rs.setRot([0, -rsAngle, 0]);
+        let mid2d = getMidpoint2d(coord, coordNext);
+        let midPoint = vectGroundTo3D(mid2d, roadHeight);
+        rs.setPos(midPoint);
+        globalObjects.push(rs);
+    }
+    console.log(circuit);
+
+    /* WALLS */
+    const walls = [];
+    const wallLength = areaSize;
+    const wallHeight = 3;
+    for(let i = 0; i < 4; i++){
+        let w = createCube(1, [0.459, 0.302, 0.043]);
+        w.setSca([1, wallHeight, wallLength]);
+        w.setRot([0, (Math.PI/2) * i, 0]);
+        let posX = i == 0 ? groundMinX : i == 2 ? groundMaxX : 0;
+        let posZ = i == 1 ? groundMinZ : i == 3 ? groundMaxZ : 0;
+        w.setPos([posX, (wallHeight / 2 - 1), posZ]);
+        w.createCollider(true);
+        globalObjects.push(w);
+    }
+
+
+    /* BALLS */
+    const ballcount = Math.floor(5 + (scale - 1) * 3);
+    for(let i = 0; i < ballcount; i++){
+        let posX, posZ;
+        do {
+            posX = obsMinX + (Math.random() * (obsMaxX - obsMinX));
+            posZ = obsMinZ + (Math.random() * (obsMaxZ - obsMinZ));
+        } while (!posCheck(posX, posZ));
+        let obs = createSphere(1, 32,[1,1,1]);
+        obs.setPos([posX, 1, posZ])
+        obs.setMaterial({ambient: 0.8, diffuse: 0.9, specular: 0.2, shininess: 4});
+
+
+        obs.createCollider(true,true);
+        globalObjects.push(obs);
+    }
+
+
+    function posCheck(x, z, minDist = 6) {
+        for (let [ox, oz] of obstaclePositions) {
+            let dx = Math.abs(x - ox);
+            let dz = Math.abs(z - oz);
+            if (dx < minDist && dz < minDist) {
+                return false; 
+            }
+        }
+        return true;
+    }
 }

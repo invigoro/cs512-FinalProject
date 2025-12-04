@@ -33,6 +33,10 @@
     </div>
     <div>
       <canvas id="glcanvas" width="1200" height="800"></canvas>
+      <div id="levelCounter"style="font-size: 24px;">
+        Level: 1
+      </div>
+
       <div id="ballCounter"style="font-size: 24px;">
         Balls: 0/0
       </div>
@@ -172,6 +176,8 @@ void main() {
   <script src="sceneObjects.js"></script>
 
   <script>
+    let currentLevel = 1;
+    createScene(currentLevel);
     function createShader(gl, type, source) {
       let shader = gl.createShader(type);
       gl.shaderSource(shader, source);
@@ -276,7 +282,7 @@ void main() {
 
 
     // Kart physics
-    let kartX = startPosition[0], kartZ = startPosition[1], kartAngle = startRotation, kartSpeed = 0;
+    let kartX = 0, kartZ = 0, kartAngle = 0, kartSpeed = 0;
     let maxSpeed = 1;
     let acceleration = 0.03;
     const friction = 0.97;
@@ -478,6 +484,21 @@ if (prim.hasTexture) {
   
   prim.children.forEach(child => initAllVAOs(child));
 }
+function deleteVAOs(prim) {
+  if (prim.vao) {
+    gl.deleteVertexArray(prim.vao);
+    prim.vao = null;
+  }
+  if (prim.texture) {
+    gl.deleteTexture(prim.texture);
+    prim.texture = null;
+  }
+  if (prim.bumpTexture) {
+    gl.deleteTexture(prim.bumpTexture);
+    prim.bumpTexture = null;
+  }
+  prim.children.forEach(child => deleteVAOs(child));
+}
 
     let modelViewMatrix;
 
@@ -599,7 +620,17 @@ if (prim.hasTexture) {
       for(let i = 0; i < globalColliders.length; i++) {
         drawColliderDebug(globalColliders[i], [0, 1, 0]); // Green for obstacles
       }
+      if(currentballs == 0){
+        kartX = 0; kartZ = 0; kartAngle = 0; kartSpeed = 0;
+        currentLevel++;
+        globalObjects.forEach(obj => deleteVAOs(obj));
+        createScene(currentLevel);
+        globalObjects.forEach(obj => initAllVAOs(obj));
+        maxballs = ballColliders.length;
+        currentballs = maxballs;
+        document.getElementById('levelCounter').textContent = `Level: ${currentLevel}`;
 
+      }
     }
 
     window.onload = function () {
