@@ -18,12 +18,18 @@ let carMaterial =
     specular: 3.0,
     shininess: 128
 };
-let chassis = createCube(2, [0.9, .02, 0.03]);
+let chassis = createCube(2, carColor);
 chassis.scaY = 0.3;
 chassis.scaX = .75;
 chassis.scaZ = 1.5;
 chassis.setMaterial(carMaterial);
 kartBase.appendChild(chassis);
+
+let bumpers = createCube(2, carColor.map(e => e * .4));
+bumpers.setSca([0.8, 0.12, 1.55]);
+bumpers.setPos([0, -.28, 0]);
+kartBase.appendChild(bumpers);
+
 
 //Rear axle
 let axleRear = createCylinder(.1, 2, 8, [0.6, 0.6, 0.6]);
@@ -143,7 +149,7 @@ kartBase.appendChild(spoilerBarR);
 
 
 //Cabin
-let windowColor = [.6, 0.98, 0.98]; //light blu
+let windowColor = [.6, 0.98, 0.98].map(e => e * .8); //light blu
 let mainCabin = createCube(1, carColor);
 mainCabin.setPos([0, .6, .2]);
 mainCabin.setSca([1, 0.3, 1]);
@@ -156,6 +162,24 @@ rearWindow.setRot([.9, 0, 0]);
 
 kartBase.appendChild(mainCabin);
 kartBase.appendChild(rearWindow);
+
+//Rear lights
+let lightColor = [1, .6, 0];
+let lightRL = createCylinder(0.1, .1, 6, lightColor);
+lightRL.setRot([Math.PI / 2, 0, 0]);
+lightRL.setPos([-.5, .15, 1.47]);
+lightRL.setSca([2, 1, 1]);
+kartBase.appendChild(lightRL);
+let lightRR = createCylinder(0.1, .1, 6, lightColor);
+lightRR.setRot([Math.PI / 2, 0, 0]);
+lightRR.setPos([.5, .15, 1.47]);
+lightRR.setSca([2, 1, 1]);
+kartBase.appendChild(lightRR);
+let licPlate = createCube(0.1, [.9, .9, .9]);
+licPlate.setRot([Math.PI / 2, 0, 0]);
+licPlate.setPos([0, -.05, 1.47]);
+licPlate.setSca([4, 2, 1]);
+kartBase.appendChild(licPlate);
 
 function createScene(scale = 1) {
     globalObjects.length = 0;
