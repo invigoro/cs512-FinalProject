@@ -1,98 +1,111 @@
 class ParticleGenerator {
-        constructor(
+    constructor(
         primitiveCallback = () => {},
         {
             pCount = 10,
-            pLifespan = 1,
-            pVelocity = 10,
-            randomDir = 1
+            pLifespan = 1000,                 // base lifespan (ms)
+            pLifespanVariance = 0.25,         // +-25% randomness
+            pVelocity = [0, 1, 0],            // base velocity vector
+            randomDir = 1,
+            gravity = [0, -9.8, 0]            // m/s² downward
         } = {}
     ) {
         this.primitiveCallback = primitiveCallback;
 
         this.particleCount = pCount;
         this.pLifespan = pLifespan;
+        this.pLifespanVariance = pLifespanVariance;
+
         this.pVelocity = pVelocity;
         this.randomDir = randomDir;
+        this.gravity = gravity;
 
-        // store particles in an array, each entry = { obj, life, vel, rotVel }
-        this.particles = [];
+        this.particles = [];  // { obj, life, vel, rotVel }
 
-        this.generateParticles();
+        this.isDisabled = false;
     }
 
     update(deltaTime) {
+        const dts = deltaTime / 1000; // convert ms to seconds
+
         for (let i = this.particles.length - 1; i >= 0; i--) {
 
-            let p = this.particles[i];
+            const p = this.particles[i];
             p.life -= deltaTime;
 
             if (p.life <= 0) {
-                // Remove old primitive
                 if (p.obj.destroy) p.obj.destroy();
-
                 this.particles.splice(i, 1);
                 continue;
             }
 
-            // ---- Update position ----
-            let pos = p.obj.getPos ? p.obj.getPos() : [0,0,0];
+            // ---- Gravity (acceleration) ----
+            p.vel[0] += this.gravity[0] * dts;
+            p.vel[1] += this.gravity[1] * dts;
+            p.vel[2] += this.gravity[2] * dts;
 
-            pos[0] += p.vel[0] * deltaTime;
-            pos[1] += p.vel[1] * deltaTime;
-            pos[2] += p.vel[2] * deltaTime;
+            // ---- Update position ----
+            let pos = p.obj.getPos ? p.obj.getPos() : [0, 0, 0];
+
+            pos[0] += p.vel[0] * dts;
+            pos[1] += p.vel[1] * dts;
+            pos[2] += p.vel[2] * dts;
 
             p.obj.setPos(pos);
 
             // ---- Update rotation ----
-            let rot = p.obj.getRot ? p.obj.getRot() : [0,0,0];
+            let rot = p.obj.getRot ? p.obj.getRot() : [0, 0, 0];
 
-            rot[0] += p.rotVel[0] * deltaTime;
-            rot[1] += p.rotVel[1] * deltaTime;
-            rot[2] += p.rotVel[2] * deltaTime;
+            rot[0] += p.rotVel[0] * dts;
+            rot[1] += p.rotVel[1] * dts;
+            rot[2] += p.rotVel[2] * dts;
 
             p.obj.setRot(rot);
         }
 
-        // Refill to required count
-        this.generateParticles();
+        this.generateParticles(true);
     }
 
-     generateParticles() {
-        while (this.particles.length < this.particleCount) {
+    generateParticles(initVAOs = false) {
+        while (!this.isDisabled && this.particles.length < this.particleCount) {
 
-            let obj = this.primitiveCallback();  
-            // You position it before returning obj if needed
+            const obj = this.primitiveCallback();
 
-            // Create a random direction vector
-            let dir = [
+            // ---- Base velocity ----
+            let base = this.pVelocity ? [...this.pVelocity] : [0, 0, 0];
+
+            // ---- Add directional randomness ----
+            let rand = [
                 (Math.random() - 0.5) * this.randomDir,
-                Math.random() * this.randomDir,   // bias upward slightly
+                (Math.random() - 0.5) * this.randomDir,
                 (Math.random() - 0.5) * this.randomDir
             ];
 
-            // Normalize
-            let len = Math.hypot(dir[0], dir[1], dir[2]) || 1;
-            dir = [dir[0] / len, dir[1] / len, dir[2] / len];
+            let vel = [
+                base[0] + rand[0],
+                base[1] + rand[1],
+                base[2] + rand[2]
+            ];
 
-            // Scale by speed
-            let vel = dir.map(v => v * this.pVelocity);
-
-            // Random rotation velocity (radians/sec)
+            // ---- Random rotation velocity ----
             let rotVel = [
                 (Math.random() - 0.5) * 2,
                 (Math.random() - 0.5) * 2,
                 (Math.random() - 0.5) * 2
             ];
 
+            // ---- Random lifespan ----
+            let lifeFactor = 1 + (Math.random() * 2 - 1) * this.pLifespanVariance;
+            let life = this.pLifespan * lifeFactor;
+
             this.particles.push({
                 obj,
-                life: this.pLifespan,
+                life,
                 vel,
                 rotVel
             });
+
+            if (initVAOs) initAllVAOs(obj);
         }
     }
-
-
 }

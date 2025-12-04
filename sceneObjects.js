@@ -12,6 +12,39 @@ let kartBase;
 let axleRotY;
 let wheelRL, wheelRR, wheelFR, wheelFL;
 let axleRear, axleFR, axleFL;
+let partL, partR;
+
+
+function makeParticleGrass() {
+    let s = createCube(.08, [0.01,0.35,0.01]);
+    s.setMaterial({
+        ambient: 0.2,
+        diffuse: 0.3,
+        shininess: 128
+    })
+    s.setPos([0,1,0]);
+    return s;
+}
+
+function makeParticleMud() {
+    let s = createCube(.1, [0.3, 0.2, 0.01]);
+    s.setMaterial({
+        ambient: 0.2,
+        diffuse: 0.3,
+        shininess: 128
+    })
+    s.setPos([0,1,0]);
+    return s;
+}function makeParticleSmoke() {
+    let s = createCube(.1, [1, 1, 1]);
+    s.setMaterial({
+        ambient: 0.2,
+        diffuse: 0.3,
+        shininess: 128
+    })
+    s.setPos([0,1,0]);
+    return s;
+}
 
 function createScene(scale = 1) {
     loadedImages = {};
@@ -34,7 +67,7 @@ let carMaterial =
 {
     diffuse: .1,
     specular: 3.0,
-    shininess: 128
+    shininess: 30
 };
 let chassis = createCube(2, carColor);
 chassis.scaY = 0.3;
@@ -57,7 +90,7 @@ axleRear.posZ = 1.3;
 axleRear.setMaterial({
     diffuse: 0.6,
     specular: 2.0,
-    shininess: 128
+    shininess: 50
 });
 
 const wheelColor = [0.15, 0.15, 0.15];
@@ -80,18 +113,31 @@ axleRear.appendChild(wheelRR);
 
 kartBase.appendChild(axleRear);
 
-function makeParticle() {
-    let s = createSphere(0.1, [1,0.8,0.2]);
-    s.setPos([0,1,0]);
-    return s;
-}
+partL = createCube(0.001);
+partR = createCube(0.001);
+partL.setPos([1, -1.4, 1]);
+partR.setPos([-1, -1.4, 1]);
+kartBase.appendChild(partL);
+kartBase.appendChild(partR);
 
-axleRear.appendParticles(new ParticleGenerator(makeParticle, {
-    pCount:  10,
-    pLifespan: 2,
-    pVelocity: 4,
-    randomDir: 1
-}))
+
+
+partL.appendParticles(new ParticleGenerator(makeParticleGrass, {
+    pCount:  20,
+    pLifespan: 500,
+    pLifespanVariance: .5,
+    pVelocity: [0, 1, 6],
+    randomDir: .8,
+    gravity: [0, -2.5, 0]
+}));
+partR.appendParticles(new ParticleGenerator(makeParticleGrass, {
+    pCount:  20,
+    pLifespan: 500,
+    pLifespanVariance: .5,
+    pVelocity: [0, 1, 6],
+    randomDir: .8,
+    gravity: [0, -2.5, 0]
+}));
 
 //Front axles
 axleFR = createCylinder(.1, .8, 8, [0.6, 0.6, 0.6]);

@@ -320,6 +320,7 @@ void main() {
     let steeringAngle = 0.0;     
     const maxSteerAngle = 0.6; // rad (~30 deg)
     const steerResponsiveness = 1; // smoothing speed
+    const burnoutSpeed = 0.8;
 
     
     function getMaxSpeed() {
@@ -437,6 +438,7 @@ function drawPrimitive(prim, transform = null) {
   prim.children.forEach(child => drawPrimitive(child, transform));
   prim.particles.forEach(part => {
     part.update(renderTime);
+      //if(!part.isDisabled) 
     part.particles.forEach(p => {
       drawPrimitive(p.obj, transform);
     })
@@ -617,11 +619,28 @@ function deleteVAOs(prim) {
       if (keys['ArrowUp']) {
         kartSpeed -= getAcceleration();
         wheelRotation -= 0.1;
+        if(!onRoad) {
+          partL.particles[0].isDisabled = false;
+          partR.particles[0].isDisabled = false;
+        }
+        else if(onRoad && -kartSpeed < burnoutSpeed) {
+          partL.particles[0].isDisabled = false;
+          partR.particles[0].isDisabled = false;
+        }
+        else {
+          partL.particles[0].isDisabled = true;
+          partR.particles[0].isDisabled = true;
+        }
       }
       if (keys['ArrowDown']) {
         kartSpeed += getAcceleration();
         wheelRotation += 0.1;
       }
+      if(kartSpeed < 0.01 && !keys['ArrowUp']) {
+          partL.particles[0].isDisabled = true;
+          partR.particles[0].isDisabled = true;
+      }
+
       kartSpeed = Math.max(-getMaxSpeed(), Math.min(getMaxSpeed(), kartSpeed));
       kartSpeed *= getFriction();
 
@@ -743,6 +762,8 @@ gl.uniform3fv(uLightColor, sunColor);
         if(col.checkOverlap(kartBase.collider.points)) {
           onRoad = true;
           onMud = false; //road take priority
+          partL.particles[0].primitiveCallback = makeParticleSmoke;
+          partR.particles[0].primitiveCallback = makeParticleSmoke;
           break;
         }
         onRoad = false;
@@ -752,10 +773,16 @@ gl.uniform3fv(uLightColor, sunColor);
           let col = mudColliders[i];
           if (col.checkOverlap(kartBase.collider.points)) {
             onMud = true;
+            partL.particles[0].primitiveCallback = makeParticleMud;
+            partR.particles[0].primitiveCallback = makeParticleMud;
             break;
           }
           onMud = false;
         }
+      }
+      if(!onRoad && !onMud) {
+          partL.particles[0].primitiveCallback = makeParticleGrass;
+          partR.particles[0].primitiveCallback = makeParticleGrass;
       }
 
       for(let i = 0; i < speedColliders.length; i++) {
