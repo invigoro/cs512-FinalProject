@@ -1,11 +1,14 @@
 const globalObjects = [];
-const globalColliders = [];
+const bounceColliders = [];
 const ballColliders = [];
+const speedColliders = [];
+const mudColliders = [];
+const roadColliders = [];
 const obstaclePositions = [];
 
 /* VEHICLE */
 let kartBase = createCube(.1);
-kartBase.createCollider(false);
+kartBase.createCollider();
 kartBase.collider.setScale([1.2,0.5,1.45]); 
 
 let carColor = [0.9, .02, 0.03];
@@ -155,7 +158,7 @@ kartBase.appendChild(rearWindow);
 
 function createScene(scale = 1) {
     globalObjects.length = 0;
-    globalColliders.length = 0;
+    bounceColliders.length = 0;
     ballColliders.length = 0;
     obstaclePositions.length = 0;
     const areaSize = 250;
@@ -178,7 +181,7 @@ function createScene(scale = 1) {
         obs.setPos([posX, 1, posZ])
         obs.setSca([obstacleSize, obstacleSize, obstacleSize]);
         obs.setRot([0, Math.random() * Math.PI, 0])
-        obs.createCollider(true);
+        obs.createCollider(bounceColliders);
         globalObjects.push(obs);
         obstaclePositions.push([posX, posZ]);
     }
@@ -236,25 +239,27 @@ function createScene(scale = 1) {
         let posX = i == 0 ? groundMinX : i == 2 ? groundMaxX : 0;
         let posZ = i == 1 ? groundMinZ : i == 3 ? groundMaxZ : 0;
         w.setPos([posX, (wallHeight / 2 - 1), posZ]);
-        w.createCollider(true);
+        w.createCollider(bounceColliders);
         globalObjects.push(w);
     }
 
 
     /* BALLS */
     const ballcount = Math.floor(5 + (scale - 1) * 3);
+    const ballPadding = 5; //keep the balls from the walls
     for(let i = 0; i < ballcount; i++){
         let posX, posZ;
         do {
-            posX = obsMinX + (Math.random() * (obsMaxX - obsMinX));
-            posZ = obsMinZ + (Math.random() * (obsMaxZ - obsMinZ));
+            posX = obsMinX + ballPadding + (Math.random() * (obsMaxX - obsMinX - ballPadding));
+            posZ = obsMinZ + ballPadding + (Math.random() * (obsMaxZ - obsMinZ - ballPadding));
         } while (!posCheck(posX, posZ));
         let obs = createSphere(1, 32,[1,1,1]);
         obs.setPos([posX, 1, posZ])
         obs.setMaterial({ambient: 0.8, diffuse: 0.9, specular: 0.2, shininess: 4});
 
 
-        obs.createCollider(true,true);
+        obs.createCollider(ballColliders);
+        obs.collider.setScale([1.1,1.1,1.1])
         globalObjects.push(obs);
     }
 

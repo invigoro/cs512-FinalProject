@@ -230,8 +230,10 @@ void main() {
     let lineProgram, linePosLoc, lineUMVM, lineUPM, lineUDebugColor;
     let lineVAO, lineVBO;
 
+    //BALLS
     let maxballs = ballColliders.length;
     let currentballs = maxballs;
+
 
     let vbo, cbo, nbo, ibo;
     let gameTime = 45;
@@ -294,15 +296,43 @@ void main() {
     initShaderProgram();
 
 
+    //surface colliders
+    let onRoad = false;
+    let onMud = false;
     // Kart physics
     let kartX = 0, kartZ = 0, kartAngle = 0, kartSpeed = 0;
-    let maxSpeed = 1;
-    let acceleration = 0.03;
+    let freezeCar = false;
+    const maxSpeed = 1;
+    const maxSpeedMud = 0.6;
+    const maxSpeedRoad = 3;
+    const acceleration = 0.04;
+    const accelerationMud = 0.03;
+    const accelerationRoad = 0.06;
     const friction = 0.97;
+    const frictionMud = 0.98;
+    const frictionRoad = 0.9;
     const turnSpeed = 0.05;
     let isTurning = 0;
     const axleRotY = axleFR.rotY;
     const axleTurnCoeff = 3.0;
+
+    
+    function getMaxSpeed() {
+      if(freezeCar) return 0;
+      if(onRoad) return maxSpeedRoad;
+      if(onMud) return maxSpeedMud;
+      return maxSpeed;
+    }
+    function getAcceleration() {
+      if(onRoad) return accelerationRoad;
+      if(onMud) return accelerationMud;
+      return acceleration;
+    }
+    function getFriction() {
+      if(onRoad) return frictionRoad;
+      if(onMud) return frictionMud;
+      return friction;
+    }
 
     // Keyboard
     let keys = {};
@@ -517,7 +547,7 @@ function deleteVAOs(prim) {
       kartX = 0; kartZ = 0; kartAngle = 0; kartSpeed = 0;
       currentLevel = 1;
       gameTime = 45;
-      maxSpeed = 1;
+      freezeCar = false;
 
       globalObjects.forEach(obj => deleteVAOs(obj));
       createScene(currentLevel);
@@ -536,7 +566,7 @@ function deleteVAOs(prim) {
     lastTime = now;
     document.getElementById('Timer').textContent = `Time: ${gameTime}s`;
     if (gameTime <= 0) {
-      maxSpeed = 0;
+      freezeCar = true;
     }
   }
 }
@@ -549,19 +579,19 @@ function deleteVAOs(prim) {
 
       // Update kart physics
       if (keys['ArrowUp']) {
-        kartSpeed -= acceleration;
+        kartSpeed -= getAcceleration();
         wheelRotation -= 0.1;
       }
       if (keys['ArrowDown']) {
-        kartSpeed += acceleration;
+        kartSpeed += getAcceleration();
         wheelRotation += 0.1;
       }
-      kartSpeed = Math.max(-maxSpeed, Math.min(maxSpeed, kartSpeed));
-      kartSpeed *= friction;
+      kartSpeed = Math.max(-getMaxSpeed(), Math.min(getMaxSpeed(), kartSpeed));
+      kartSpeed *= getFriction();
 
       if (Math.abs(kartSpeed) > 0.01) {
-        if (keys['ArrowLeft']) kartAngle -= turnSpeed * (kartSpeed / maxSpeed);
-        if (keys['ArrowRight']) kartAngle += turnSpeed * (kartSpeed / maxSpeed);
+        if (keys['ArrowLeft']) kartAngle -= turnSpeed * (kartSpeed / getMaxSpeed());
+        if (keys['ArrowRight']) kartAngle += turnSpeed * (kartSpeed / getMaxSpeed());
       }
       wheelRL.rotY = kartSpeed + wheelRotation;
       wheelRR.rotY = kartSpeed + wheelRotation;
@@ -631,14 +661,14 @@ function deleteVAOs(prim) {
         drawPrimitive(obj);
       }
 
-      for(let i = 0; i < globalColliders.length; i++) {
-        let col = globalColliders[i];
+      for(let i = 0; i < bounceColliders.length; i++) {
+        let col = bounceColliders[i];
         if(col.checkOverlap(kartBase.collider.points)) {
           kartSpeed = -kartSpeed * 1.8;
-          acceleration = 0;
+          //acceleration = 0;
         }
         else {
-          acceleration = 0.03;
+          //acceleration = 0.03;
         }
       }
 
@@ -659,11 +689,26 @@ function deleteVAOs(prim) {
         }
       }
 
+      for(let i = 0; i < roadColliders.length; i++) {
+        let col = roadColliders[i]; 
+        if(col.checkOverlap(kartBase.collider.points)) {
+
+          break;
+        }
+      }
+
+      for(let i = 0; i < speedColliders.length; i++) {
+        let col = speedColliders[i];
+      }
+
       // Draw all collider debug visualizations
       drawColliderDebug(kartBase.collider, [0, 0, 1]); // Blue for kart
-      for(let i = 0; i < globalColliders.length; i++) {
-        drawColliderDebug(globalColliders[i], [0, 1, 0]); // Green for obstacles
-      }
+      [bounceColliders, ballColliders, speedColliders, mudColliders, roadColliders].forEach(element => {
+        for(let i = 0; i < element.length; i++) {
+          drawColliderDebug(element[i], [0, 1, 0]); // Green for obstacles
+        }
+      });
+
       if(currentballs == 0){
         kartX = 0; kartZ = 0; kartAngle = 0; kartSpeed = 0;
         currentLevel++;
