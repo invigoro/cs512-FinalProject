@@ -267,7 +267,6 @@ kartBase.appendChild(licPlate);
     const obsMaxZ = (areaSize / 2);
     const obstacleSize = 4;
     const clearSpawnArea = 15;
-
     for(let i = 0; i < obstacleCount; i++){
         let obs = createCube(1, null,"textures/crate.jpg");
         let posX, posZ;
@@ -282,6 +281,42 @@ kartBase.appendChild(licPlate);
         globalObjects.push(obs);
         obstaclePositions.push([posX, posZ]);
     }
+
+    const treeCount = Math.floor(7 + (scale - 1) * 2);
+    for(let i = 0; i < treeCount; i++){
+        let trunk = createCube(1, [0.4, 0.25, 0.1]);
+        trunk.setSca([1, 7, 1]);
+        let posX, posZ;
+        do {
+            posX = obsMinX + (Math.random() * (obsMaxX- obsMinX));
+            posZ = obsMinX + (Math.random() * (obsMaxZ - obsMinZ));
+        } while ((posX >= -clearSpawnArea && posX <= clearSpawnArea && posZ >= -clearSpawnArea && posZ <= clearSpawnArea));
+        trunk.setPos([posX, 1, posZ]);
+        trunk.createCollider(bounceColliders);
+        globalObjects.push(trunk);
+        obstaclePositions.push([posX, posZ]);
+        for (let i = 0; i < 8; i++) {
+            let c = createSphere(2.3, 5, [0, 0.4, 0.086]);
+            c.setMaterial({
+                diffuse: 0.9,
+                specular: 0.05,
+                shininess: 2
+            });
+            let offsetX = rand(-2, 2);
+            let offsetY = rand(0, 2.5);
+            let offsetZ = rand(-2, 2);
+
+            c.setPos([
+                posX + offsetX,
+                1+3.5 + offsetY,
+                posZ + offsetZ
+            ]);
+
+            globalObjects.push(c);
+        }
+
+    }
+
 
     /* GROUND */
     const groundMinX = -(areaSize / 2);
@@ -381,28 +416,21 @@ for (let i = 0; i < cloudCount; i++) {
     let cx = (Math.random() * (areaSize + skyBuffer*2)) - (areaSize/2 + skyBuffer);
     let cz = (Math.random() * (areaSize + skyBuffer*2)) - (areaSize/2 + skyBuffer);
     let cy = 20 + Math.random() * 15;
-
-    spawnCloud(cx, cy, cz, 15);
-}
-
-function spawnCloud(centerX, centerY, centerZ, count = 20) {
-
-    let cloud = createSphere(1, 10, [1,1,1]);
-    cloud.setPos([centerX, centerY, centerZ]);
+    let cloud = createSphere(1, 5, [1,1,1]);
+    cloud.setPos([cx, cy, cz]);
     globalObjects.push(cloud);
 
-    for (let i = 0; i < count; i++) {
-        let c = createSphere(1, 10, [1,1,1]);
+    for (let i = 0; i < 15; i++) {
+        let c = createSphere(1, 5, [1,1,1]);
 
-        // Spread for fluffy shape
-        let offsetX = Math.random() * 5 - 3;
-        let offsetY = Math.random() * 1;
-        let offsetZ = Math.random() * 5 - 3;
+        let offsetX = rand(-3, 2);
+        let offsetY = rand(0, 1);
+        let offsetZ = rand(-3, 2);
 
         c.setPos([
-            centerX + offsetX,
-            centerY + offsetY,
-            centerZ + offsetZ
+            cx + offsetX,
+            cy + offsetY,
+            cz + offsetZ
         ]);
 
         globalObjects.push(c);
@@ -419,4 +447,8 @@ function spawnCloud(centerX, centerY, centerZ, count = 20) {
         }
         return true;
     }
+
+    function rand(min, max) {
+    return Math.random() * (max - min) + min;
+}
 }
