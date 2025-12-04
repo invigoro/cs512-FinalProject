@@ -281,8 +281,8 @@ kartBase.appendChild(licPlate);
         globalObjects.push(obs);
         obstaclePositions.push([posX, posZ]);
     }
-
-    const treeCount = Math.floor(7 + (scale - 1) * 2);
+    /* TREES */
+    const treeCount = Math.floor(5 + (scale - 1) * 2);
     for(let i = 0; i < treeCount; i++){
         let trunk = createCube(1, [0.4, 0.25, 0.1]);
         trunk.setSca([1, 7, 1]);
@@ -295,8 +295,8 @@ kartBase.appendChild(licPlate);
         trunk.createCollider(bounceColliders);
         globalObjects.push(trunk);
         obstaclePositions.push([posX, posZ]);
-        for (let i = 0; i < 8; i++) {
-            let c = createSphere(2.3, 5, [0, 0.4, 0.086]);
+        for (let i = 0; i < 4; i++) {
+            let c = createSphere(3, 5, [0, 0.4, 0.086]);
             c.setMaterial({
                 diffuse: 0.9,
                 specular: 0.05,
@@ -409,33 +409,34 @@ kartBase.appendChild(licPlate);
         globalObjects.push(obs);
     }
 
-const cloudCount = 100;
-const skyBuffer = areaSize * 0.5;
-for (let i = 0; i < cloudCount; i++) {
+    /* CLOUDS */
+    const cloudCount = 80;
+    const skyBuffer = areaSize * 0.5;
+    for (let i = 0; i < cloudCount; i++) {
 
-    let cx = (Math.random() * (areaSize + skyBuffer*2)) - (areaSize/2 + skyBuffer);
-    let cz = (Math.random() * (areaSize + skyBuffer*2)) - (areaSize/2 + skyBuffer);
-    let cy = 20 + Math.random() * 15;
-    let cloud = createSphere(1, 5, [1,1,1]);
-    cloud.setPos([cx, cy, cz]);
-    globalObjects.push(cloud);
+        let cx = (Math.random() * (areaSize + skyBuffer*2)) - (areaSize/2 + skyBuffer);
+        let cz = (Math.random() * (areaSize + skyBuffer*2)) - (areaSize/2 + skyBuffer);
+        let cy = 20 + Math.random() * 15;
+        let cloud = createSphere(1, 5, [1,1,1]);
+        cloud.setPos([cx, cy, cz]);
+        globalObjects.push(cloud);
 
-    for (let i = 0; i < 15; i++) {
-        let c = createSphere(1, 5, [1,1,1]);
+        for (let i = 0; i < 7; i++) {
+            let c = createSphere(2.5, 5, [1,1,1]);
 
-        let offsetX = rand(-3, 2);
-        let offsetY = rand(0, 1);
-        let offsetZ = rand(-3, 2);
+            let offsetX = rand(-3, 2);
+            let offsetY = rand(0, 1);
+            let offsetZ = rand(-3, 2);
 
-        c.setPos([
-            cx + offsetX,
-            cy + offsetY,
-            cz + offsetZ
-        ]);
+            c.setPos([
+                cx + offsetX,
+                cy + offsetY,
+                cz + offsetZ
+            ]);
 
-        globalObjects.push(c);
+            globalObjects.push(c);
+        }
     }
-}
 
     function posCheck(x, z, minDist = 6) {
         for (let [ox, oz] of obstaclePositions) {
