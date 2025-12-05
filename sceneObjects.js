@@ -281,6 +281,7 @@ kartBase.appendChild(licPlate);
         globalObjects.push(obs);
         obstaclePositions.push([posX, posZ]);
     }
+
     /* TREES */
     const treeCount = Math.floor(5 + (scale - 1) * 2);
     for(let i = 0; i < treeCount; i++){
@@ -331,12 +332,12 @@ kartBase.appendChild(licPlate);
             let gbv = (Math.random() - 0.5) * groundBrightnessVariance;
             const isMud = Math.random() < mudProbability;
             let floor;
-            if(isMud) {
+            if(isMud) { //MUD
                 floor = createPlane(groundPanelSize, groundPanelSize, [0.3 + gbv, 0.2 + gbv, 0.01], "textures/noiseTexture_bump.png");
                 floor.createCollider(mudColliders);
                 floor.collider.setScale([groundPanelSize / 2, 1, groundPanelSize / 2]);
             }
-            else {
+            else { //GRASS
                 floor = createPlane(groundPanelSize, groundPanelSize, [0.01,0.35 + gbv,0.01], "textures/noiseTexture_bump.png");
             }
             floor.setPos([i, -.5, j]);
