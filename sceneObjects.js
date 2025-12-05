@@ -16,7 +16,7 @@ let partL, partR;
 
 
 function makeParticleGrass() {
-    let s = createCube(.08, [0.01,0.35,0.01]);
+    let s = createCylinder(.02, 0.1, 4, [0.01,0.35,0.01]);
     s.setMaterial({
         ambient: 0.2,
         diffuse: 0.3,
@@ -27,21 +27,21 @@ function makeParticleGrass() {
 }
 
 function makeParticleMud() {
-    let s = createCube(.1, [0.3, 0.2, 0.01]);
-    s.setMaterial({
-        ambient: 0.2,
-        diffuse: 0.3,
-        shininess: 128
-    })
+    let s = createSphere(.05, 8, [0.3, 0.2, 0.01]);
+    // s.setMaterial({
+    //     ambient: 0.2,
+    //     diffuse: 0.3,
+    //     shininess: 128
+    // })
     s.setPos([0,1,0]);
     return s;
 }function makeParticleSmoke() {
     let s = createCube(.1, [1, 1, 1]);
-    s.setMaterial({
-        ambient: 0.2,
-        diffuse: 0.3,
-        shininess: 128
-    })
+    // s.setMaterial({
+    //     ambient: 0.2,
+    //     diffuse: 0.3,
+    //     shininess: 128
+    // })
     s.setPos([0,1,0]);
     return s;
 }
@@ -127,7 +127,7 @@ partL.appendParticles(new ParticleGenerator(makeParticleGrass, {
     pLifespan: 500,
     pLifespanVariance: .5,
     pVelocity: [0, 1, 6],
-    randomDir: .8,
+    randomDir: 1,
     gravity: [0, -2.5, 0]
 }));
 partR.appendParticles(new ParticleGenerator(makeParticleGrass, {
@@ -135,7 +135,7 @@ partR.appendParticles(new ParticleGenerator(makeParticleGrass, {
     pLifespan: 500,
     pLifespanVariance: .5,
     pVelocity: [0, 1, 6],
-    randomDir: .8,
+    randomDir: 1,
     gravity: [0, -2.5, 0]
 }));
 
