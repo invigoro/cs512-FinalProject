@@ -598,7 +598,7 @@ function deleteVAOs(prim) {
   if (elapsed >= 1&& gameTime > 0) {
     gameTime--;
     lastTime = now;
-    document.getElementById('Timer').textContent = `Time: ${gameTime}s`;
+    document.getElementById('Timer').textContent = `Time: ${Math.round(gameTime)}s`;
     if (gameTime <= 0) {
       freezeCar = true;
     }
@@ -749,8 +749,8 @@ gl.uniform3fv(uLightColor, sunColor);
             if(globalObjects[j].collider === col) {
               globalObjects.splice(j, 1);
               currentballs--;
-              gameTime += 3;
-              document.getElementById('Timer').textContent = `Time: ${gameTime}s`;
+              gameTime += (15 / maxballs);
+              document.getElementById('Timer').textContent = `Time: ${Math.round(gameTime)}s`;
               break;
             }
           }

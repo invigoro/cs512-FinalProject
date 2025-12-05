@@ -395,8 +395,8 @@ kartBase.appendChild(licPlate);
     for(let i = 0; i < ballcount; i++){
         let posX, posZ;
         do {
-            posX = obsMinX + ballPadding + (Math.random() * (obsMaxX - obsMinX - ballPadding));
-            posZ = obsMinZ + ballPadding + (Math.random() * (obsMaxZ - obsMinZ - ballPadding));
+            posX = obsMinX + ballPadding + (Math.random() * (obsMaxX - obsMinX - (ballPadding * 2)));
+            posZ = obsMinZ + ballPadding + (Math.random() * (obsMaxZ - obsMinZ - (ballPadding * 2)));
         } while (!posCheck(posX, posZ));
         let obs = createSphere(1, 32,[.99, .5,.99]);
         obs.setPos([posX, 1.5, posZ])
