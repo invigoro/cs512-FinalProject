@@ -649,6 +649,7 @@ function deleteVAOs(prim) {
         let targetInput = 0;
         if (keys['ArrowLeft']) targetInput = -1;
         if (keys['ArrowRight']) targetInput = 1;
+        if(kartSpeed > 0) targetInput *= -1;
         steeringInput += (targetInput - steeringInput) * 0.15;
         let speedFactor = Math.min(Math.abs(kartSpeed) / (maxSpeedRoad + 1), 1);
         let steerFalloff = 1.0 - speedFactor * speedFactor;
