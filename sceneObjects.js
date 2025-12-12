@@ -6,6 +6,7 @@ const mudColliders = [];
 const roadColliders = [];
 const obstaclePositions = [];
 let loadedImages = {};
+let ballValue = 0;
 
 /* VEHICLE */
 let kartBase;
@@ -48,6 +49,7 @@ function makeParticleMud() {
 
 function createScene(scale = 1) {
     loadedImages = {};
+    ballValue = getBallValueAtLevel(scale);
     globalObjects.length = 0;
     bounceColliders.length = 0;
     ballColliders.length = 0;
@@ -388,7 +390,7 @@ kartBase.appendChild(licPlate);
 
 
     /* BALLS */
-    const ballcount = Math.floor(5 + (scale - 1) * 3);
+    const ballcount = getMaxBallsAtLevel(scale);
     const ballPadding = 5; //keep the balls from the walls
     for(let i = 0; i < ballcount; i++){
         let posX, posZ;

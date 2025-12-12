@@ -139,3 +139,11 @@ function getMidpoint2d(v1, v2) {
   const midpointY = (v1[1] + v2[1]) / 2;
   return [midpointX, midpointY];
 }
+
+function getBallValueAtLevel(level) {
+    return (15 / getMaxBallsAtLevel(level)) + 1;
+}
+
+function getMaxBallsAtLevel(level) {
+    return Math.floor(5 + (level- 1) * 3)
+}

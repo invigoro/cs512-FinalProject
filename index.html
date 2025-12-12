@@ -751,7 +751,7 @@ gl.uniform3fv(uLightColor, sunColor);
             if(globalObjects[j].collider === col) {
               globalObjects.splice(j, 1);
               currentballs--;
-              gameTime += (15 / maxballs);
+              gameTime += ballValue;
               document.getElementById('Timer').textContent = `Time: ${Math.round(gameTime)}s`;
               break;
             }
