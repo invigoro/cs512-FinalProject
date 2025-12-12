@@ -68,9 +68,6 @@ function generateRandomCircuit(size, variance, intervalCount) {
     // Close loop explicitly 
     resampled.push(resampled[0].slice());
 
-    // -------- 6. REMOVE old "start at (0,0)" translation --------
-    // (You requested to keep the start wherever it naturally is)
-
     // -------- 7. Fit inside centered size × size bounds --------
     let minX = Infinity, maxX = -Infinity;
     let minY = Infinity, maxY = -Infinity;

@@ -355,15 +355,14 @@ kartBase.appendChild(licPlate);
     const roadWidth = 15;
     const roadHeight = -.49;
     const circuit = generateRandomCircuit(areaSize, .35, roadSegments);
-    const startPosition = circuit[0];
-    const startRotation = getAngleBetweenPoints(circuit[0], circuit[1]);
+    const roadColor = [0.2, 0.2, 0.22];
     for(let i = 0; i < circuit.length - 1; i++){
         let coord = circuit[i];
         let coordNext = circuit[i + 1];
         let rsDist = vectorDistance(coordNext, coord);
         let rsAngle = getAngleBetweenPoints(coord, coordNext);
         let rsLength = rsDist * 1.15;
-        let rs = createPlane(rsLength, roadWidth, [0.2, 0.2, 0.22], "textures/noiseTexture_bump.png"); 
+        let rs = createPlane(rsLength, roadWidth, roadColor, "textures/noiseTexture_bump.png"); 
         rs.setRot([0, -rsAngle, 0]);
         let mid2d = getMidpoint2d(coord, coordNext);
         let midPoint = vectGroundTo3D(mid2d, roadHeight);
@@ -374,7 +373,6 @@ kartBase.appendChild(licPlate);
     }
 
     /* WALLS */
-    const walls = [];
     const wallLength = areaSize;
     const wallHeight = 3;
     for(let i = 0; i < 4; i++){
